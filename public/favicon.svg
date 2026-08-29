@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <rect width="64" height="64" rx="16" fill="#4F46E5"/>
+  <!-- Scales icon paths -->
+  <g fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" transform="translate(12, 12)">
+    <path d="M20 3v34"/>
+    <path d="M6 10h28"/>
+    <path d="M12 37h16"/>
+    <path d="M6 10l-3 10a6 6 0 0 0 12 0L12 10z" fill="rgba(255,255,255,0.15)"/>
+    <path d="M28 10l-3 10a6 6 0 0 0 12 0l-3-10z" fill="rgba(255,255,255,0.15)"/>
+  </g>
+</svg>
