@@ -1,6 +1,6 @@
-# PackSure — AI-Powered Legal Metrology Compliance Inspection System
+# PackGuard — AI-Powered Legal Metrology Compliance Inspection System
 
-PackSure is an enforcement dashboard prototype designed for SIH hackathon demonstration. It empowers Legal Metrology inspectors to upload packaged product panel images (PDP, declaration panel, side labels), automatically extract mandatory legal declarations (MRP, Net Qty, Manufacturer, Consumer Care details), evaluate rule compliance under Legal Metrology (Packaged Commodities) Rules 2011, review evidence, track inspection logs, and print official compliance certificate reports.
+PackGuard is an enforcement dashboard prototype designed for SIH hackathon demonstration. It empowers Legal Metrology inspectors to upload packaged product panel images (PDP, declaration panel, side labels), automatically extract mandatory legal declarations (MRP, Net Qty, Manufacturer, Consumer Care details), evaluate rule compliance under Legal Metrology (Packaged Commodities) Rules 2011, review evidence, track inspection logs, and print official compliance certificate reports.
 
 ---
 
