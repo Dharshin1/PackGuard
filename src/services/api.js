@@ -1,5 +1,8 @@
 import axios from 'axios';
 import { DEMO_PRODUCTS } from '../data/mockData';
+import { performOcr } from './ocr/ocrEngine';
+import { extractDeclarations } from './ocr/declarationExtractor';
+import { evaluateRules } from './ocr/rulesEngine';
 
 // API Client configuration reading VITE_API_BASE_URL
 const API_BASE_URL =
@@ -105,7 +108,7 @@ export const uploadInspection = createInspection;
  * Perform AI-assisted compliance analysis on uploaded product
  */
 export const analyzeInspection = async (params) => {
-  await delay(800);
+  await delay(400);
 
   // If a demo sample ID was selected, return full realistic demo result
   if (params.demoSampleId) {
@@ -124,21 +127,34 @@ export const analyzeInspection = async (params) => {
     }
   }
 
-  // Result object for user-uploaded custom package images
+  // Step 1: Perform Modular OCR Scan on primary package image
+  const primaryImage = params.images && params.images.length > 0 ? params.images[0] : null;
+  const ocrResult = await performOcr(primaryImage || params.productName || 'Uploaded Package');
+
+  // Step 2: Extract Legal Metrology Statutory Declarations
+  const declarations = extractDeclarations(ocrResult.rawText, params);
+
+  // Step 3: Evaluate Legal Metrology (Packaged Commodities) Rules 2011 Compliance
+  const assessment = evaluateRules(declarations, ocrResult.rawText, params);
+
   const newId = `INS-2026-${Math.floor(1000 + Math.random() * 9000)}`;
+  
   return {
     id: newId,
-    productName: params.productName || 'Uploaded Packaged Commodity',
-    brand: params.brand || 'Packaged Commodity Brand',
+    productName: params.productName || (declarations.find(d => d.field === 'Product Name')?.detectedValue) || 'Uploaded Packaged Commodity',
+    brand: params.brand || (declarations.find(d => d.field === 'Manufacturer / Packer / Importer')?.detectedValue) || 'Packaged Commodity Brand',
     category: params.category || 'Beverages & Packaged Liquids',
     date: new Date().toISOString(),
     inspectorName: 'Enforcement Officer',
     inspectorId: 'LM-OFF-409',
     location: params.location || 'Inspection Facility',
     referenceNumber: params.referenceNumber || `REF-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-    complianceScore: 92,
-    status: 'Compliant',
-    summaryNotes: 'AI-assisted assessment complete. Declarations extracted from uploaded package images.',
+    complianceScore: assessment.complianceScore,
+    status: assessment.status,
+    rawOcrText: ocrResult.rawText,
+    ocrConfidence: ocrResult.confidence,
+    ocrSource: ocrResult.source,
+    summaryNotes: `AI-assisted OCR assessment complete via ${ocrResult.source}. Mandatory declarations extracted and evaluated under Legal Metrology Rules 2011.`,
     images: params.images && params.images.length > 0 ? params.images : [
       {
         id: 'img-new-1',
@@ -148,23 +164,15 @@ export const analyzeInspection = async (params) => {
         annotations: [{ x: 35, y: 60, label: 'Detected Label' }]
       }
     ],
-    declarations: [
-      { field: 'Product Name', detectedValue: params.productName || 'Packaged Commodity', status: 'Detected', isCompliant: true, confidence: 0.96, ruleRef: 'Rule 6(1)(a)' },
-      { field: 'Maximum Retail Price (MRP)', detectedValue: '₹150.00 (Incl. of all taxes)', status: 'Detected', isCompliant: true, confidence: 0.95, ruleRef: 'Rule 6(1)(e)' },
-      { field: 'Net Quantity', detectedValue: '500 g', status: 'Detected', isCompliant: true, confidence: 0.98, ruleRef: 'Rule 6(1)(c)' },
-      { field: 'Manufacturer / Packer / Importer', detectedValue: params.brand || 'Standard Packer Pvt Ltd', status: 'Detected', isCompliant: true, confidence: 0.92, ruleRef: 'Rule 6(1)(a)' },
-      { field: 'Address', detectedValue: 'Industrial Area, Phase-2, New Delhi - 110020', status: 'Detected', isCompliant: true, confidence: 0.91, ruleRef: 'Rule 6(1)(a)' },
-      { field: 'Date / Month-Year of Mfg', detectedValue: '08/2026', status: 'Detected', isCompliant: true, confidence: 0.94, ruleRef: 'Rule 6(1)(d)' },
-      { field: 'Consumer Care Details', detectedValue: '1800-22-3344 | care@brand.com', status: 'Detected', isCompliant: true, confidence: 0.93, ruleRef: 'Rule 6(1)(8)' }
-    ],
-    checklist: [
-      { item: 'Mandatory declarations present on Principal Display Panel (PDP)', compliant: true },
-      { item: 'Font size complies with net weight category thresholds', compliant: true },
-      { item: 'MRP expressed in Indian National Rupees (₹) inclusive of all taxes', compliant: true },
-      { item: 'Full address with postal pin code provided', compliant: true }
-    ],
-    issues: [],
-    evidence: []
+    declarations,
+    checklist: assessment.checklist,
+    issues: assessment.issues,
+    evidence: assessment.issues.map(iss => ({
+      id: `ev-${iss.id}`,
+      title: iss.title,
+      description: iss.reason,
+      imageUrl: params.images && params.images[0] ? params.images[0].url : 'https://images.unsplash.com/photo-1563636619-e9143da7973b?auto=format&fit=crop&w=800&q=80'
+    }))
   };
 };
 

@@ -1,14 +1,45 @@
-import React from 'react';
-import { CheckCircle2, AlertTriangle, XCircle, FileText, Image as ImageIcon } from 'lucide-react';
+import React, { useState } from 'react';
+import { CheckCircle2, AlertTriangle, XCircle, FileText, Edit2, Check, X } from 'lucide-react';
 
-const DeclarationCard = ({ declarations = [] }) => {
-  if (!declarations || declarations.length === 0) {
+const DeclarationCard = ({ declarations = [], onUpdateDeclarations }) => {
+  const [editingIndex, setEditingIndex] = useState(null);
+  const [editValue, setEditValue] = useState('');
+  const [items, setItems] = useState(declarations);
+
+  // Sync state if prop changes
+  React.useEffect(() => {
+    setItems(declarations);
+  }, [declarations]);
+
+  if (!items || items.length === 0) {
     return (
       <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 text-center text-xs text-slate-500">
         No declaration metrics available.
       </div>
     );
   }
+
+  const handleStartEdit = (idx, currentValue) => {
+    setEditingIndex(idx);
+    setEditValue(currentValue.includes('Not detected') ? '' : currentValue);
+  };
+
+  const handleSaveEdit = (idx) => {
+    const updated = [...items];
+    const item = { ...updated[idx] };
+    item.detectedValue = editValue.trim() || 'Not detected in uploaded image';
+    item.status = editValue.trim() ? 'Detected' : 'Not Detected';
+    item.isCompliant = editValue.trim().length > 0;
+    item.confidence = 1.0; // Manual inspector verification confidence
+    updated[idx] = item;
+
+    setItems(updated);
+    setEditingIndex(null);
+
+    if (onUpdateDeclarations) {
+      onUpdateDeclarations(updated);
+    }
+  };
 
   const renderStatusBadge = (item) => {
     const isNotDetected =
@@ -61,14 +92,14 @@ const DeclarationCard = ({ declarations = [] }) => {
           <thead>
             <tr className="bg-slate-950/80 text-slate-400 text-[10px] font-bold uppercase tracking-wider border-b border-slate-800">
               <th className="py-3 px-4">Declaration Field</th>
-              <th className="py-3 px-4">Extracted Value</th>
+              <th className="py-3 px-4">Extracted Value (Editable)</th>
               <th className="py-3 px-4">Status</th>
               <th className="py-3 px-4">Rule Reference</th>
               <th className="py-3 px-4 text-right">Confidence</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800/60 text-xs">
-            {declarations.map((item, idx) => {
+            {items.map((item, idx) => {
               const isNotDetected =
                 item.status === 'Not Detected' ||
                 item.detectedValue?.toLowerCase().includes('not detected');
@@ -76,6 +107,8 @@ const DeclarationCard = ({ declarations = [] }) => {
               const displayValue = isNotDetected
                 ? 'Not detected in uploaded image'
                 : item.detectedValue;
+
+              const isEditing = editingIndex === idx;
 
               return (
                 <tr key={idx} className="hover:bg-slate-800/40 transition-colors">
@@ -86,15 +119,50 @@ const DeclarationCard = ({ declarations = [] }) => {
 
                   {/* Extracted Value */}
                   <td className="py-3.5 px-4 font-mono">
-                    <span
-                      className={`inline-block px-2.5 py-1 rounded text-xs ${
-                        isNotDetected
-                          ? 'text-amber-400/90 italic bg-amber-500/10 border border-amber-500/20'
-                          : 'text-slate-100 bg-slate-950 border border-slate-800 font-medium'
-                      }`}
-                    >
-                      {displayValue}
-                    </span>
+                    {isEditing ? (
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="text"
+                          value={editValue}
+                          onChange={(e) => setEditValue(e.target.value)}
+                          className="bg-slate-950 border border-indigo-500 rounded px-2 py-1 text-xs text-white focus:outline-none w-full"
+                          autoFocus
+                        />
+                        <button
+                          onClick={() => handleSaveEdit(idx)}
+                          className="p-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white"
+                          title="Save override"
+                        >
+                          <Check className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          onClick={() => setEditingIndex(null)}
+                          className="p-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-400"
+                          title="Cancel"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="flex items-center space-x-2 group">
+                        <span
+                          className={`inline-block px-2.5 py-1 rounded text-xs ${
+                            isNotDetected
+                              ? 'text-amber-400/90 italic bg-amber-500/10 border border-amber-500/20'
+                              : 'text-slate-100 bg-slate-950 border border-slate-800 font-medium'
+                          }`}
+                        >
+                          {displayValue}
+                        </span>
+                        <button
+                          onClick={() => handleStartEdit(idx, item.detectedValue)}
+                          className="opacity-0 group-hover:opacity-100 p-1 text-slate-400 hover:text-indigo-400 transition-opacity"
+                          title="Edit extracted value"
+                        >
+                          <Edit2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
                   </td>
 
                   {/* Status */}
