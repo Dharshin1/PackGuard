@@ -77,6 +77,14 @@ const AnalysisResult = () => {
     ?.filter((d) => d.status === 'Detected')
     .map((d) => d.field);
 
+  const handleUpdateDeclarations = (updatedDeclarations) => {
+    if (!inspection) return;
+    setInspection(prev => ({
+      ...prev,
+      declarations: updatedDeclarations
+    }));
+  };
+
   return (
     <div className="space-y-6">
       {/* Action Navigation Header */}
@@ -177,7 +185,10 @@ const AnalysisResult = () => {
         {/* LEFT COLUMN: Product Image Viewer & Raw OCR Text Stream */}
         <div className="lg:col-span-1 space-y-6">
           {/* Package Image Viewer */}
-          <ImageGallery images={inspection.images} />
+          <ImageGallery
+            images={inspection.images}
+            netQuantity={inspection.declarations?.find(d => d.field === 'Net Quantity')?.detectedValue || '500 g'}
+          />
 
           {/* Raw OCR Text Panel */}
           <OcrPanel rawText={inspection.rawOcrText} detectedFields={detectedTokens} />
@@ -189,7 +200,7 @@ const AnalysisResult = () => {
         {/* RIGHT COLUMN: Declarations, Compliance Table & Violations */}
         <div className="lg:col-span-2 space-y-6">
           {/* Extracted Declarations Compliance Table */}
-          <DeclarationCard declarations={inspection.declarations} />
+          <DeclarationCard declarations={inspection.declarations} onUpdateDeclarations={handleUpdateDeclarations} />
 
           {/* Rule Compliance Checklist */}
           <ComplianceChecklist checklist={inspection.checklist} />
