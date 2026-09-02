@@ -26,3 +26,11 @@ node_modules/
 dist/
 .env
 .env.local
+
+# Python / Backend ignores
+__pycache__/
+*.pyc
+backend/venv/
+backend/.env
+backend/uploads/
+backend/generated_pdfs/
