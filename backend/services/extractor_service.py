@@ -1,12 +1,49 @@
 import re
 from typing import Dict, List
 
+def clean_and_repair_ocr_text(raw_text: str) -> str:
+    """
+    Post-OCR Post-Processing & Fuzzy Character Repair Layer:
+    Corrects optical character misreads (O->0, S->5, R5->Rs.), normalizes currency (₹),
+    repairs garbled tax statements, and fixes statutory weight/volume units.
+    """
+    if not raw_text:
+        return ""
+
+    text = raw_text
+
+    # 1. Currency Normalization
+    text = re.sub(r'\bR[5sS]\.?\s*', 'Rs. ', text)
+    text = re.sub(r'\b1NR\b', 'INR', text)
+
+    # 2. Tax Statement Repair
+    text = re.sub(r'\b1NC1\.?\s*OF\s*ALL\s*TAXES\b', 'INCL. OF ALL TAXES', text, flags=re.IGNORECASE)
+    text = re.sub(r'\bINC[L1]\.?\s*OF\s*ALL\s*TAXES\b', 'INCL. OF ALL TAXES', text, flags=re.IGNORECASE)
+    text = re.sub(r'\bINCL\.?\s*TAXES\b', 'INCL. OF ALL TAXES', text, flags=re.IGNORECASE)
+
+    # 3. Numerical Optical Misread Repair in Price Strings (e.g. 1SO -> 150, 15O.OO -> 150.00)
+    def fix_price_numbers(match):
+        price_val = match.group(1)
+        price_val = price_val.replace('O', '0').replace('o', '0').replace('S', '5').replace('s', '5').replace('I', '1').replace('l', '1')
+        return f"RS. {price_val}"
+
+    text = re.sub(r'(?:RS\.?|₹)\s*([0-9OoSsIl]+(?:\.[0-9OoSsIl]{2})?)', fix_price_numbers, text, flags=re.IGNORECASE)
+
+    # 4. Net Quantity Statutory Unit Repair (grn -> g, k.g -> kg, m.l -> ml)
+    text = re.sub(r'\b(\d+(?:\.\d+)?)\s*grn\b', r'\1 g', text, flags=re.IGNORECASE)
+    text = re.sub(r'\b(\d+(?:\.\d+)?)\s*gm\b', r'\1 g', text, flags=re.IGNORECASE)
+    text = re.sub(r'\b(\d+(?:\.\d+)?)\s*k\.?g\.?\b', r'\1 kg', text, flags=re.IGNORECASE)
+    text = re.sub(r'\b(\d+(?:\.\d+)?)\s*m\.?l\.?\b', r'\1 ml', text, flags=re.IGNORECASE)
+
+    return text
+
 def extract_statutory_declarations(raw_text: str, metadata: Dict = None) -> List[Dict]:
     """
     Parses OCR raw text stream into Legal Metrology (Packaged Commodities) Rules 2011 statutory declarations.
+    First runs Post-OCR fuzzy string repair layer.
     """
     metadata = metadata or {}
-    text = raw_text or ""
+    text = clean_and_repair_ocr_text(raw_text or "")
     lines = [l.strip() for l in text.split("\n") if l.strip()]
 
     declarations = []

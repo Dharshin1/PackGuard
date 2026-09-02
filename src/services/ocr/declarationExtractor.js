@@ -6,10 +6,44 @@
  */
 
 /**
+ * Post-OCR Fuzzy Character & String Repair Helper
+ */
+export const cleanAndRepairOcrText = (rawText = '') => {
+  if (!rawText) return '';
+  let text = typeof rawText === 'string' ? rawText : (rawText?.rawText || '');
+
+  // 1. Currency Normalization
+  text = text.replace(/\bR[5sS]\.?\s*/gi, 'Rs. ');
+  text = text.replace(/\b1NR\b/g, 'INR');
+
+  // 2. Tax Statement Repair
+  text = text.replace(/\b1NC1\.?\s*OF\s*ALL\s*TAXES\b/gi, 'INCL. OF ALL TAXES');
+  text = text.replace(/\bINC[L1]\.?\s*OF\s*ALL\s*TAXES\b/gi, 'INCL. OF ALL TAXES');
+  text = text.replace(/\bINCL\.?\s*TAXES\b/gi, 'INCL. OF ALL TAXES');
+
+  // 3. Numerical Optical Misread Repair in Price Strings (e.g. 1SO -> 150)
+  text = text.replace(/(?:RS\.?|₹)\s*([0-9OoSsIl]+(?:\.[0-9OoSsIl]{2})?)/gi, (match, priceVal) => {
+    const fixedPrice = priceVal
+      .replace(/[Oo]/g, '0')
+      .replace(/[Ss]/g, '5')
+      .replace(/[Il]/g, '1');
+    return `RS. ${fixedPrice}`;
+  });
+
+  // 4. Net Quantity Statutory Unit Repair
+  text = text.replace(/\b(\d+(?:\.\d+)?)\s*grn\b/gi, '$1 g');
+  text = text.replace(/\b(\d+(?:\.\d+)?)\s*gm\b/gi, '$1 g');
+  text = text.replace(/\b(\d+(?:\.\d+)?)\s*k\.?g\.?\b/gi, '$1 kg');
+  text = text.replace(/\b(\d+(?:\.\d+)?)\s*m\.?l\.?\b/gi, '$1 ml');
+
+  return text;
+};
+
+/**
  * Extracts mandatory Legal Metrology declaration fields from raw text stream(s).
  */
 export const extractDeclarations = (rawText = '', existingMetadata = {}) => {
-  const text = typeof rawText === 'string' ? rawText : (rawText?.rawText || '');
+  const text = cleanAndRepairOcrText(rawText);
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
 
   // Initialize extracted declarations table
