@@ -1,39 +1,79 @@
 import React from 'react';
-import { Camera, ShieldAlert, CheckCircle, ExternalLink } from 'lucide-react';
+import { Camera } from 'lucide-react';
 
+/**
+ * EvidenceViewer — Visual evidence artifacts panel.
+ * All props and logic preserved exactly.
+ * Visual redesign: light theme, clean evidence cards.
+ */
 const EvidenceViewer = ({ evidence = [], title = 'Visual Evidence Artifacts' }) => {
   if (!evidence || evidence.length === 0) {
     return (
-      <div className="bg-slate-900 border border-slate-800 rounded-xl p-5 text-center text-xs text-slate-500">
-        No specific visual evidence artifacts uploaded.
+      <div style={{
+        backgroundColor: 'var(--pg-surface-subtle)',
+        border: '1px dashed var(--pg-border-strong)',
+        borderRadius: '8px',
+        padding: '14px 16px',
+        display: 'flex', alignItems: 'center', gap: '8px',
+      }}>
+        <Camera style={{ width: '13px', height: '13px', color: 'var(--pg-text-muted)', flexShrink: 0 }} />
+        <p style={{ fontSize: '12px', color: 'var(--pg-text-muted)', margin: 0, fontStyle: 'italic' }}>
+          No specific visual evidence artifacts uploaded.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-lg">
-      <div className="px-5 py-4 bg-slate-950 border-b border-slate-800 flex items-center space-x-2">
-        <Camera className="w-4 h-4 text-indigo-400" />
-        <h3 className="text-sm font-bold text-white">{title}</h3>
+    <div style={{
+      backgroundColor: 'var(--pg-surface)',
+      border: '1px solid var(--pg-border)',
+      borderRadius: '8px',
+      overflow: 'hidden',
+      boxShadow: 'var(--pg-shadow-sm)',
+    }}>
+      {/* Header */}
+      <div style={{
+        padding: '11px 16px',
+        backgroundColor: 'var(--pg-surface-subtle)',
+        borderBottom: '1px solid var(--pg-border)',
+        display: 'flex', alignItems: 'center', gap: '7px',
+      }}>
+        <Camera style={{ width: '13px', height: '13px', color: 'var(--pg-text-muted)' }} />
+        <h3 style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--pg-text-primary)', margin: 0, letterSpacing: '-0.01em' }}>
+          {title}
+        </h3>
       </div>
 
-      <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div style={{ padding: '12px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
         {evidence.map((item, idx) => (
-          <div key={item.id || idx} className="bg-slate-950 rounded-xl border border-slate-800 overflow-hidden group">
-            <div className="relative aspect-video bg-slate-900 overflow-hidden">
+          <div key={item.id || idx} style={{
+            backgroundColor: 'var(--pg-surface)',
+            border: '1px solid var(--pg-border)',
+            borderRadius: '6px',
+            overflow: 'hidden',
+          }}>
+            <div style={{ position: 'relative', aspectRatio: '16/9', overflow: 'hidden', backgroundColor: 'var(--pg-surface-subtle)' }}>
               <img
                 src={item.imageUrl}
                 alt={item.title}
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-80" />
-              <div className="absolute bottom-2 left-2 right-2 text-white">
-                <p className="text-xs font-bold truncate">{item.title}</p>
+              <div style={{
+                position: 'absolute', bottom: 0, left: 0, right: 0,
+                padding: '4px 8px',
+                background: 'linear-gradient(to top, rgba(27,42,59,0.85), transparent)',
+              }}>
+                <p style={{ fontSize: '10.5px', fontWeight: 600, color: '#ffffff', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {item.title}
+                </p>
               </div>
             </div>
-            <div className="p-3">
-              <p className="text-[11px] text-slate-400 leading-normal">{item.description}</p>
-            </div>
+            {item.description && (
+              <div style={{ padding: '8px 10px' }}>
+                <p style={{ fontSize: '11px', color: 'var(--pg-text-muted)', lineHeight: 1.5, margin: 0 }}>{item.description}</p>
+              </div>
+            )}
           </div>
         ))}
       </div>

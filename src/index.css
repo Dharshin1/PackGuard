@@ -1,32 +1,523 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap');
 @import "tailwindcss";
 
+/* ============================================================
+   PACKGUARD DESIGN TOKENS
+   Clean editorial professional inspection product.
+   No glassmorphism. No glow. No neon. No futuristic styling.
+   ============================================================ */
+
+:root {
+  /* Neutral Palette */
+  --pg-bg:              #FAF9F6;     /* warm off-white page surface */
+  --pg-surface:         #FFFFFF;     /* card / panel surface */
+  --pg-surface-subtle:  #F0EFEC;    /* slightly warmer inset surface */
+  --pg-border:          #E2E0DC;    /* thin subtle border */
+  --pg-border-strong:   #C8C5BF;    /* slightly heavier rule */
+
+  /* Typography */
+  --pg-text-primary:    #1C1C1A;    /* near-black charcoal */
+  --pg-text-secondary:  #4A4845;    /* mid-tone supporting text */
+  --pg-text-muted:      #7A7773;    /* de-emphasized labels */
+
+  /* Sidebar / Navigation */
+  --pg-nav-bg:          #1A1F2E;    /* deep navy sidebar */
+  --pg-nav-border:      #252B3B;    /* sidebar border */
+  --pg-nav-text:        #8B92A5;    /* nav item resting */
+  --pg-nav-active-bg:   rgba(44, 110, 73, 0.18); /* active nav item bg */
+
+  /* Header */
+  --pg-header-bg:       #FFFFFF;    /* clean white header */
+  --pg-header-border:   #E2E0DC;    /* header bottom rule */
+
+  /* Accent — deep forest green */
+  --pg-accent:          #2C6E49;    /* deep green — inspection/compliance */
+  --pg-accent-hover:    #245C3D;
+  --pg-accent-muted:    #EBF4EF;
+  --pg-accent-text:     #1E5038;
+
+  /* Navy — structure / information */
+  --pg-navy:            #1B2A3B;
+  --pg-navy-surface:    #1E2D3D;
+  --pg-navy-border:     #2A3D52;
+  --pg-navy-text:       #C8D8E8;
+
+  /* Status Colors */
+  --pg-compliant-bg:    #EBF5EE;
+  --pg-compliant-border:#A8D5B5;
+  --pg-compliant-text:  #1B6B35;
+
+  --pg-review-bg:       #FEF7EC;
+  --pg-review-border:   #F0C878;
+  --pg-review-text:     #8A5C00;
+
+  --pg-fail-bg:         #FBF0EE;
+  --pg-fail-border:     #EDADA3;
+  --pg-fail-text:       #9B2B1A;
+
+  --pg-pending-bg:      #EEF2FF;
+  --pg-pending-border:  #C7D2FE;
+  --pg-pending-text:    #4338CA;
+
+  --pg-neutral-bg:      #F5F4F1;
+  --pg-neutral-border:  #C8C5BF;
+  --pg-neutral-text:    #5C5A56;
+
+  /* Shape */
+  --pg-radius-sm:       4px;
+  --pg-radius:          6px;
+  --pg-radius-lg:       10px;
+  --pg-shadow-sm:       0 1px 3px 0 rgba(28, 28, 26, 0.07);
+  --pg-shadow:          0 2px 8px 0 rgba(28, 28, 26, 0.09);
+  --pg-shadow-md:       0 4px 16px 0 rgba(28, 28, 26, 0.10);
+}
+
+/* ============================================================
+   BASE RESET
+   ============================================================ */
+
 @layer base {
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    @apply antialiased;
+    scroll-behavior: smooth;
+  }
+
   body {
-    @apply bg-slate-900 text-slate-100 font-sans antialiased min-h-screen selection:bg-indigo-500 selection:text-white;
+    background-color: var(--pg-bg);
+    color: var(--pg-text-primary);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+  }
+
+  ::selection {
+    background-color: var(--pg-accent-muted);
+    color: var(--pg-accent-text);
   }
 }
 
-/* Custom scrollbars */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: rgba(15, 23, 42, 0.6);
-}
-::-webkit-scrollbar-thumb {
-  background: rgba(51, 65, 85, 0.8);
-  border-radius: 3px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(71, 85, 105, 1);
+/* ============================================================
+   SCOPED TEXT-COLOR CORRECTION
+   ---------------------------------------------------------------
+   Problem: existing pages use Tailwind classes like text-white,
+   text-slate-200, text-slate-400 which assume a dark background.
+   After Phase 1 the page main area is now off-white, making those
+   headings invisible.
+
+   Strategy:
+   1. Override text-white → dark charcoal ONLY inside [data-pg-main]
+      (the off-white page content area).
+   2. Restore text-white → white INSIDE dark card containers
+      (bg-slate-950, bg-slate-900, bg-slate-800) even when those
+      cards are inside [data-pg-main]. Dark cards are untouched.
+   3. Improve slate text utilities for readability on the light bg.
+   ============================================================ */
+
+/* — Step 1: Override bare page headings that use text-white — */
+
+[data-pg-main] .text-white {
+  color: var(--pg-text-primary) !important;
 }
 
-/* Print styles for Report Preview */
+/* — Step 2: Restore white text inside dark card surfaces — */
+/* These dark containers keep their own dark palette unchanged. */
+
+[data-pg-main] .bg-slate-950 .text-white,
+[data-pg-main] .bg-slate-950 > .text-white,
+[data-pg-main] .bg-slate-900 .text-white,
+[data-pg-main] .bg-slate-900 > .text-white,
+[data-pg-main] .bg-slate-800 .text-white,
+[data-pg-main] .bg-slate-800 > .text-white,
+[data-pg-main] [class*="bg-slate-9"] .text-white,
+[data-pg-main] [class*="bg-slate-8"] .text-white,
+[data-pg-main] [class*="bg-indigo"] .text-white {
+  color: #ffffff !important;
+}
+
+/* — Step 3: Improve slate muted text on light backgrounds — */
+/* Existing text-slate-400 becomes near-invisible on off-white.
+   Override to a readable charcoal-muted shade. */
+
+[data-pg-main] .text-slate-400 {
+  color: var(--pg-text-secondary) !important;
+}
+
+[data-pg-main] .text-slate-500 {
+  color: var(--pg-text-muted) !important;
+}
+
+/* Restore inside dark containers */
+[data-pg-main] .bg-slate-950 .text-slate-400,
+[data-pg-main] .bg-slate-900 .text-slate-400,
+[data-pg-main] .bg-slate-800 .text-slate-400,
+[data-pg-main] [class*="bg-slate-9"] .text-slate-400,
+[data-pg-main] [class*="bg-slate-8"] .text-slate-400 {
+  color: #94a3b8 !important; /* Tailwind slate-400 original */
+}
+
+[data-pg-main] .bg-slate-950 .text-slate-500,
+[data-pg-main] .bg-slate-900 .text-slate-500,
+[data-pg-main] .bg-slate-800 .text-slate-500,
+[data-pg-main] [class*="bg-slate-9"] .text-slate-500,
+[data-pg-main] [class*="bg-slate-8"] .text-slate-500 {
+  color: #64748b !important; /* Tailwind slate-500 original */
+}
+
+/* — Step 4: Borders on light bg — */
+/* border-slate-800 is nearly invisible on off-white — darken it */
+
+[data-pg-main] .border-slate-800 {
+  border-color: var(--pg-border) !important;
+}
+
+/* Restore inside dark containers */
+[data-pg-main] .bg-slate-950 .border-slate-800,
+[data-pg-main] .bg-slate-900 .border-slate-800,
+[data-pg-main] [class*="bg-slate-9"] .border-slate-800 {
+  border-color: #1e293b !important; /* Tailwind slate-800 original */
+}
+
+/* border-b on page-level wrappers */
+[data-pg-main] > div > .border-b.border-slate-800,
+[data-pg-main] > div .border-b.border-slate-800:not([class*="bg-slate"]) {
+  border-color: var(--pg-border-strong) !important;
+}
+
+/* ============================================================
+   SHARED TYPOGRAPHY UTILITIES
+   ============================================================ */
+
+.pg-heading-xl {
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: var(--pg-text-primary);
+}
+
+.pg-heading-lg {
+  font-size: 1.125rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  color: var(--pg-text-primary);
+}
+
+.pg-heading-md {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--pg-text-primary);
+}
+
+.pg-heading-sm {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--pg-text-primary);
+}
+
+.pg-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--pg-text-muted);
+}
+
+.pg-body {
+  font-size: 0.8125rem;
+  color: var(--pg-text-secondary);
+  line-height: 1.65;
+}
+
+.pg-caption {
+  font-size: 0.75rem;
+  color: var(--pg-text-muted);
+}
+
+/* ============================================================
+   SURFACE UTILITIES
+   ============================================================ */
+
+.pg-card {
+  background-color: var(--pg-surface);
+  border: 1px solid var(--pg-border);
+  border-radius: var(--pg-radius-lg);
+  box-shadow: var(--pg-shadow-sm);
+}
+
+.pg-inset {
+  background-color: var(--pg-surface-subtle);
+  border: 1px solid var(--pg-border);
+  border-radius: var(--pg-radius);
+}
+
+.pg-divider {
+  border: none;
+  border-top: 1px solid var(--pg-border);
+  margin: 0;
+}
+
+/* ============================================================
+   BUTTON UTILITIES
+   ============================================================ */
+
+.pg-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  background-color: var(--pg-accent);
+  color: #ffffff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: var(--pg-radius);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  white-space: nowrap;
+}
+
+.pg-btn-primary:hover {
+  background-color: var(--pg-accent-hover);
+}
+
+.pg-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  background-color: var(--pg-surface);
+  color: var(--pg-text-primary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: var(--pg-radius);
+  border: 1px solid var(--pg-border-strong);
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
+}
+
+.pg-btn-secondary:hover {
+  background-color: var(--pg-surface-subtle);
+}
+
+.pg-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  background-color: transparent;
+  color: var(--pg-text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--pg-radius);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.pg-btn-ghost:hover {
+  background-color: var(--pg-surface-subtle);
+  color: var(--pg-text-primary);
+}
+
+/* ============================================================
+   FORM CONTROLS
+   ============================================================ */
+
+.pg-input {
+  width: 100%;
+  background-color: var(--pg-surface);
+  border: 1px solid var(--pg-border);
+  border-radius: var(--pg-radius);
+  color: var(--pg-text-primary);
+  font-size: 0.8125rem;
+  padding: 0.5rem 0.75rem;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.pg-input::placeholder {
+  color: var(--pg-text-muted);
+}
+
+.pg-input:focus {
+  border-color: var(--pg-accent);
+}
+
+/* ============================================================
+   STATUS BADGE FOUNDATION
+   ============================================================ */
+
+.pg-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.25rem 0.625rem;
+  border-radius: var(--pg-radius-sm);
+  border: 1px solid;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.pg-badge-compliant {
+  background-color: var(--pg-compliant-bg);
+  border-color: var(--pg-compliant-border);
+  color: var(--pg-compliant-text);
+}
+
+.pg-badge-review {
+  background-color: var(--pg-review-bg);
+  border-color: var(--pg-review-border);
+  color: var(--pg-review-text);
+}
+
+.pg-badge-fail {
+  background-color: var(--pg-fail-bg);
+  border-color: var(--pg-fail-border);
+  color: var(--pg-fail-text);
+}
+
+.pg-badge-neutral {
+  background-color: var(--pg-neutral-bg);
+  border-color: var(--pg-neutral-border);
+  color: var(--pg-neutral-text);
+}
+
+.pg-badge-pending {
+  background-color: var(--pg-pending-bg);
+  border-color: var(--pg-pending-border);
+  color: var(--pg-pending-text);
+}
+
+.pg-badge-not-detected {
+  background-color: #F7F5F0;
+  border-color: #D4CFC8;
+  color: #6B6560;
+}
+
+
+/* ============================================================
+   SCROLLBAR
+   ============================================================ */
+
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--pg-border-strong);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--pg-text-muted);
+}
+
+/* ============================================================
+   LAYOUT UTILITIES — RESPONSIVE
+   ============================================================ */
+
+/* Two-column inspection workspace (NewInspection page) */
+.pg-inspection-layout {
+  max-width: 1200px;
+  display: flex;
+  gap: 28px;
+  align-items: flex-start;
+}
+
+.pg-inspection-sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+@media (max-width: 940px) {
+  .pg-inspection-layout {
+    flex-direction: column;
+  }
+  .pg-inspection-sidebar {
+    width: 100%;
+  }
+}
+
+/* Two-column result layout (InspectionDetails + AnalysisResult) */
+.pg-result-grid {
+  grid-template-columns: 1fr 2fr;
+}
+
+@media (max-width: 1024px) {
+  .pg-result-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Filter toolbar responsive grid — collapses on narrow screens */
+.pg-filter-grid {
+  grid-template-columns: 1fr auto auto;
+}
+
+@media (max-width: 700px) {
+  .pg-filter-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Footer responsive grid */
+.pg-footer-grid {
+  grid-template-columns: 1.6fr 1fr 1fr;
+}
+
+@media (max-width: 860px) {
+  .pg-footer-grid {
+    grid-template-columns: 1fr 1fr !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .pg-footer-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Responsive landing page hero grid */
+@media (max-width: 860px) {
+  .pg-hero-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .pg-hero-card {
+    display: none;
+  }
+  .pg-editorial-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* ============================================================
+   PRINT STYLES — preserved from original
+   ============================================================ */
+
 @media print {
   body {
-    background-color: white !important;
-    color: black !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    font-size: 11pt;
   }
   .no-print {
     display: none !important;

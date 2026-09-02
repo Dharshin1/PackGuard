@@ -1,50 +1,85 @@
 import React from 'react';
-import { CheckCircle2, XCircle, AlertCircle, ShieldCheck } from 'lucide-react';
+import { CheckCircle2, XCircle, ShieldCheck } from 'lucide-react';
 
+/**
+ * ComplianceChecklist — Rule compliance checklist.
+ * All props and business logic preserved exactly.
+ * Visual redesign: light cards, proper contrast.
+ */
 const ComplianceChecklist = ({ checklist = [] }) => {
   if (!checklist || checklist.length === 0) return null;
 
   const passed = checklist.filter((c) => c.compliant === true).length;
-  const total = checklist.length;
+  const total  = checklist.length;
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-lg">
-      <div className="px-5 py-4 bg-slate-950 border-b border-slate-800 flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <ShieldCheck className="w-4 h-4 text-indigo-400" />
-          <h3 className="text-sm font-bold text-white">Rule Compliance Checklist</h3>
+    <div style={{
+      backgroundColor: 'var(--pg-surface)',
+      border: '1px solid var(--pg-border)',
+      borderRadius: '8px',
+      overflow: 'hidden',
+      boxShadow: 'var(--pg-shadow-sm)',
+    }}>
+      {/* Header */}
+      <div style={{
+        padding: '13px 18px',
+        backgroundColor: 'var(--pg-surface-subtle)',
+        borderBottom: '1px solid var(--pg-border)',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <ShieldCheck style={{ width: '14px', height: '14px', color: 'var(--pg-accent)' }} />
+          <h3 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--pg-text-primary)', margin: 0, letterSpacing: '-0.01em' }}>
+            Rule Compliance Checklist
+          </h3>
         </div>
-        <span className="text-xs font-mono font-semibold px-2.5 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">
+        <span style={{
+          fontSize: '11px', fontWeight: 700, fontFamily: 'monospace',
+          padding: '3px 10px', borderRadius: '4px',
+          backgroundColor: passed === total ? 'var(--pg-compliant-bg)' : 'var(--pg-review-bg)',
+          border: `1px solid ${passed === total ? 'var(--pg-compliant-border)' : 'var(--pg-review-border)'}`,
+          color: passed === total ? 'var(--pg-compliant-text)' : 'var(--pg-review-text)',
+        }}>
           {passed}/{total} Passed
         </span>
       </div>
 
-      <div className="p-4 space-y-2.5">
+      {/* Checklist rows */}
+      <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
         {checklist.map((check, idx) => (
           <div
             key={idx}
-            className={`p-3 rounded-lg border flex items-start space-x-3 transition-colors ${
-              check.compliant
-                ? 'bg-slate-800/40 border-slate-800 text-slate-200'
-                : 'bg-rose-500/10 border-rose-500/20 text-rose-200'
-            }`}
+            style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '10px',
+              padding: '10px 12px',
+              borderRadius: '6px',
+              border: `1px solid ${check.compliant ? 'var(--pg-compliant-border)' : 'var(--pg-fail-border)'}`,
+              backgroundColor: check.compliant ? 'var(--pg-compliant-bg)' : 'var(--pg-fail-bg)',
+            }}
           >
             {check.compliant ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+              <CheckCircle2 style={{ width: '14px', height: '14px', color: 'var(--pg-compliant-text)', flexShrink: 0, marginTop: '1px' }} />
             ) : (
-              <XCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+              <XCircle style={{ width: '14px', height: '14px', color: 'var(--pg-fail-text)', flexShrink: 0, marginTop: '1px' }} />
             )}
-            <div className="flex-1">
-              <p className="text-xs font-medium leading-snug">{check.item}</p>
-            </div>
-            <span
-              className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded ${
-                check.compliant
-                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                  : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-              }`}
-            >
-              {check.compliant ? 'PASSED' : 'NON-COMPLIANT'}
+            <p style={{
+              flex: 1, margin: 0,
+              fontSize: '12.5px', lineHeight: 1.5,
+              color: check.compliant ? 'var(--pg-compliant-text)' : 'var(--pg-fail-text)',
+              fontWeight: 500,
+            }}>
+              {check.item}
+            </p>
+            <span style={{
+              fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em',
+              padding: '2px 7px', borderRadius: '3px', whiteSpace: 'nowrap', flexShrink: 0,
+              backgroundColor: check.compliant ? 'rgba(27,107,53,0.12)' : 'rgba(155,43,26,0.10)',
+              color: check.compliant ? 'var(--pg-compliant-text)' : 'var(--pg-fail-text)',
+              border: `1px solid ${check.compliant ? 'var(--pg-compliant-border)' : 'var(--pg-fail-border)'}`,
+            }}>
+              {check.compliant ? 'PASSED' : 'FAILED'}
             </span>
           </div>
         ))}

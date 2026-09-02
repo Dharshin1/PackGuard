@@ -15,8 +15,11 @@ import {
   Save,
   CheckCircle2,
   ArrowLeft,
-  Award,
-  AlertCircle
+  AlertCircle,
+  ShieldCheck,
+  AlertTriangle,
+  XCircle,
+  Hash,
 } from 'lucide-react';
 
 const AnalysisResult = () => {
@@ -50,17 +53,23 @@ const AnalysisResult = () => {
   }, [id, currentAnalysis, inspections]);
 
   if (loading) {
-    return <LoadingState message="Loading AI-Assisted Assessment..." />;
+    return <LoadingState message="Loading Assessment Results..." />;
   }
 
   if (!inspection) {
     return (
-      <div className="text-center py-16">
-        <h2 className="text-base font-bold text-white mb-2">Inspection Record Not Found</h2>
-        <p className="text-xs text-slate-400 mb-4">No record found matching ID: {id}</p>
+      <div style={{ padding: '48px 0', textAlign: 'center' }}>
+        <h2 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--pg-text-primary)', marginBottom: '8px' }}>
+          Inspection Record Not Found
+        </h2>
+        <p style={{ fontSize: '12px', color: 'var(--pg-text-muted)', marginBottom: '16px' }}>No record matching ID: {id}</p>
         <button
           onClick={() => navigate('/history')}
-          className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-xs font-semibold"
+          style={{
+            padding: '8px 18px', borderRadius: '6px',
+            backgroundColor: 'var(--pg-accent)', color: '#fff',
+            border: 'none', fontSize: '12.5px', fontWeight: 600, cursor: 'pointer',
+          }}
         >
           Back to History
         </button>
@@ -73,146 +82,312 @@ const AnalysisResult = () => {
     setTimeout(() => setSavedSuccess(false), 3000);
   };
 
+  const handleUpdateDeclarations = (updatedDeclarations) => {
+    if (!inspection) return;
+    setInspection(prev => ({ ...prev, declarations: updatedDeclarations }));
+  };
+
   const detectedTokens = inspection.declarations
     ?.filter((d) => d.status === 'Detected')
     .map((d) => d.field);
 
-  const handleUpdateDeclarations = (updatedDeclarations) => {
-    if (!inspection) return;
-    setInspection(prev => ({
-      ...prev,
-      declarations: updatedDeclarations
-    }));
+  /* ── Derived summary counts ── */
+  const decls = inspection.declarations || [];
+  const passed      = decls.filter(d => d.status === 'Detected' && d.isCompliant !== false).length;
+  const needsReview = decls.filter(d => d.status === 'Requires Review' || (d.isCompliant === false && d.status !== 'Not Detected')).length;
+  const notDetected = decls.filter(d => d.status === 'Not Detected' || d.detectedValue?.toLowerCase().includes('not detected')).length;
+  const avgConf     = decls.length > 0
+    ? Math.round(decls.filter(d => d.confidence > 0).reduce((a, d) => a + d.confidence, 0) / (decls.filter(d => d.confidence > 0).length || 1) * 100)
+    : null;
+
+  const score = inspection.complianceScore;
+  const scoreColor = score >= 80 ? '#1B6B35' : score >= 50 ? '#8A5C00' : '#9B2B1A';
+
+  const cardStyle = {
+    backgroundColor: 'var(--pg-surface)',
+    border: '1px solid var(--pg-border)',
+    borderRadius: '8px',
+    boxShadow: 'var(--pg-shadow-sm)',
   };
 
   return (
-    <div className="space-y-6">
-      {/* Action Navigation Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
-        <div className="flex items-center space-x-3">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', maxWidth: '1280px' }}>
+
+      {/* ── PAGE HEADER ─────────────────────────────────────────────── */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'space-between',
+        gap: '16px',
+        flexWrap: 'wrap',
+        paddingBottom: '18px',
+        borderBottom: '1px solid var(--pg-border)',
+      }}>
+        {/* Left: back + ID + status + title */}
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
           <button
             onClick={() => navigate('/history')}
-            className="p-2 rounded-lg bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-400 hover:text-white transition-colors"
+            style={{
+              marginTop: '2px',
+              width: '34px', height: '34px', borderRadius: '6px',
+              backgroundColor: 'var(--pg-surface)',
+              border: '1px solid var(--pg-border-strong)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: 'var(--pg-text-muted)', cursor: 'pointer',
+              transition: 'border-color 0.12s, color 0.12s',
+              flexShrink: 0,
+            }}
+            onMouseEnter={e => { e.currentTarget.style.color = 'var(--pg-text-primary)'; }}
+            onMouseLeave={e => { e.currentTarget.style.color = 'var(--pg-text-muted)'; }}
           >
-            <ArrowLeft className="w-4 h-4" />
+            <ArrowLeft style={{ width: '14px', height: '14px' }} />
           </button>
+
           <div>
-            <div className="flex items-center space-x-2">
-              <span className="font-mono text-xs font-bold text-indigo-400">{inspection.id}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '5px', flexWrap: 'wrap' }}>
+              <span style={{
+                display: 'inline-flex', alignItems: 'center', gap: '4px',
+                fontFamily: 'monospace', fontSize: '11.5px', fontWeight: 700,
+                color: 'var(--pg-accent)', backgroundColor: 'var(--pg-accent-muted)',
+                border: '1px solid #A8D5B5', borderRadius: '4px', padding: '2px 8px',
+              }}>
+                <Hash style={{ width: '10px', height: '10px' }} />
+                {inspection.id}
+              </span>
               <StatusBadge status={inspection.status} />
             </div>
-            <h1 className="text-xl font-extrabold text-white mt-0.5">{inspection.productName}</h1>
+            <h1 style={{
+              fontSize: '20px', fontWeight: 700,
+              color: 'var(--pg-text-primary)',
+              letterSpacing: '-0.02em', lineHeight: 1.2, margin: 0,
+            }}>
+              {inspection.productName}
+            </h1>
+            {inspection.category && (
+              <p style={{ fontSize: '12px', color: 'var(--pg-text-muted)', marginTop: '3px' }}>
+                {inspection.category}
+                {inspection.referenceNumber && (
+                  <span style={{ marginLeft: '8px', fontFamily: 'monospace', color: 'var(--pg-accent)', fontWeight: 600 }}>
+                    · {inspection.referenceNumber}
+                  </span>
+                )}
+              </p>
+            )}
           </div>
         </div>
 
-        <div className="flex items-center space-x-3">
+        {/* Right: actions */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
           <button
             onClick={handleSave}
-            className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-200 transition-colors"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '6px',
+              backgroundColor: savedSuccess ? 'var(--pg-accent-muted)' : 'var(--pg-surface)',
+              color: savedSuccess ? 'var(--pg-accent)' : 'var(--pg-text-secondary)',
+              fontSize: '12.5px', fontWeight: 600,
+              padding: '8px 16px', borderRadius: '6px',
+              border: `1px solid ${savedSuccess ? '#A8D5B5' : 'var(--pg-border-strong)'}`,
+              cursor: 'pointer',
+              transition: 'all 0.15s ease',
+            }}
           >
-            <Save className="w-3.5 h-3.5" />
+            {savedSuccess
+              ? <CheckCircle2 style={{ width: '13px', height: '13px' }} />
+              : <Save style={{ width: '13px', height: '13px' }} />}
             <span>{savedSuccess ? 'Saved to Registry' : 'Save Inspection'}</span>
           </button>
 
           <button
             onClick={() => navigate(`/report/${inspection.id}`)}
-            className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-bold text-white shadow-md transition-colors"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '7px',
+              backgroundColor: 'var(--pg-navy)', color: '#ffffff',
+              fontSize: '12.5px', fontWeight: 600,
+              padding: '9px 18px', borderRadius: '6px',
+              border: 'none', cursor: 'pointer',
+              transition: 'background-color 0.12s ease',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#243444'; }}
+            onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'var(--pg-navy)'; }}
           >
-            <FileText className="w-3.5 h-3.5" />
+            <FileText style={{ width: '13px', height: '13px' }} />
             <span>Generate Inspection Report</span>
           </button>
         </div>
       </div>
 
+      {/* Saved notification */}
       {savedSuccess && (
-        <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg text-emerald-300 text-xs flex items-center space-x-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-          <span>Inspection record saved. You can access it anytime in Inspection History.</span>
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '8px',
+          padding: '10px 14px',
+          backgroundColor: 'var(--pg-compliant-bg)',
+          border: '1px solid var(--pg-compliant-border)',
+          borderRadius: '6px',
+        }}>
+          <CheckCircle2 style={{ width: '14px', height: '14px', color: 'var(--pg-compliant-text)' }} />
+          <span style={{ fontSize: '12.5px', color: 'var(--pg-compliant-text)', fontWeight: 500 }}>
+            Inspection record saved. Available in Inspection Log.
+          </span>
         </div>
       )}
 
-      {/* Overview Metrics Header */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Compliance Score Tile */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg flex items-center justify-between">
+      {/* ── OVERVIEW METRICS (3 cards) ───────────────────────────────── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px' }}>
+
+        {/* Compliance Score */}
+        <div style={{
+          ...cardStyle,
+          padding: '16px 18px',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px',
+          borderLeft: `3px solid ${scoreColor}`,
+        }}>
           <div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Compliance Score</p>
-            <div className="mt-1">
-              {inspection.complianceScore !== undefined && inspection.complianceScore !== null ? (
-                <span className="text-3xl font-extrabold font-mono text-indigo-400">
-                  {inspection.complianceScore}%
+            <p style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--pg-text-muted)', margin: 0 }}>
+              Compliance Score
+            </p>
+            <div style={{ marginTop: '4px' }}>
+              {score !== undefined && score !== null ? (
+                <span style={{ fontSize: '28px', fontWeight: 800, fontVariantNumeric: 'tabular-nums', letterSpacing: '-0.03em', color: scoreColor, lineHeight: 1 }}>
+                  {score}%
                 </span>
               ) : (
-                <span className="text-sm font-semibold text-slate-400">Not available</span>
+                <span style={{ fontSize: '14px', color: 'var(--pg-text-muted)' }}>Not available</span>
               )}
             </div>
           </div>
-          <div className="p-3 rounded-xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
-            <Award className="w-6 h-6" />
-          </div>
+          {score !== undefined && score !== null && (
+            <div style={{
+              width: '44px', height: '44px', borderRadius: '50%', flexShrink: 0,
+              background: `conic-gradient(${scoreColor} ${score * 3.6}deg, #E2E0DC ${score * 3.6}deg)`,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}>
+              <div style={{
+                width: '30px', height: '30px', borderRadius: '50%',
+                backgroundColor: 'var(--pg-surface)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <ShieldCheck style={{ width: '13px', height: '13px', color: scoreColor }} />
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Assessment Status Tile */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg flex flex-col justify-between">
-          <div>
-            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Overall Assessment</p>
-            <StatusBadge status={inspection.status} />
-          </div>
-          <p className="text-[11px] text-slate-400 mt-2">
-            Legal Metrology Rule 6 & Rule 7 verification complete.
+        {/* Assessment Status */}
+        <div style={{ ...cardStyle, padding: '16px 18px' }}>
+          <p style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--pg-text-muted)', margin: '0 0 8px' }}>
+            Overall Assessment
+          </p>
+          <StatusBadge status={inspection.status} />
+          <p style={{ fontSize: '11px', color: 'var(--pg-text-muted)', marginTop: '8px', lineHeight: 1.5 }}>
+            Legal Metrology Rule 6 &amp; Rule 7 verification complete.
           </p>
         </div>
 
-        {/* Inspection Metadata Tile */}
-        <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg text-xs space-y-1.5">
-          <div className="flex justify-between text-slate-400">
-            <span>Inspector:</span>
-            <span className="font-semibold text-slate-200">{inspection.inspectorName || 'Enforcement Inspector'}</span>
-          </div>
-          <div className="flex justify-between text-slate-400">
-            <span>Reference:</span>
-            <span className="font-mono text-indigo-400">{inspection.referenceNumber}</span>
-          </div>
-          <div className="flex justify-between text-slate-400">
-            <span>Category:</span>
-            <span className="text-slate-200">{inspection.category}</span>
-          </div>
+        {/* Inspection Metadata */}
+        <div style={{ ...cardStyle, padding: '16px 18px' }}>
+          <p style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--pg-text-muted)', margin: '0 0 10px' }}>
+            Inspection Details
+          </p>
+          {[
+            { label: 'Inspector', val: inspection.inspectorName || 'Enforcement Officer' },
+            { label: 'Reference', val: inspection.referenceNumber, mono: true },
+            { label: 'Category', val: inspection.category },
+          ].map((row, i) => (
+            <div key={i} style={{
+              display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '8px',
+              padding: '5px 0',
+              borderBottom: i < 2 ? '1px solid var(--pg-border)' : 'none',
+            }}>
+              <span style={{ fontSize: '11.5px', color: 'var(--pg-text-muted)', flexShrink: 0 }}>{row.label}:</span>
+              <span style={{
+                fontSize: '12px', fontWeight: 600, color: 'var(--pg-text-primary)',
+                textAlign: 'right',
+                fontFamily: row.mono ? 'monospace' : 'inherit',
+                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+              }}>
+                {row.val || '—'}
+              </span>
+            </div>
+          ))}
         </div>
       </div>
 
-      {/* Two-Column Result Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* LEFT COLUMN: Product Image Viewer & Raw OCR Text Stream */}
-        <div className="lg:col-span-1 space-y-6">
-          {/* Package Image Viewer */}
+      {/* ── INSPECTION SUMMARY STRIP ─────────────────────────────────── */}
+      {decls.length > 0 && (
+        <div style={{
+          ...cardStyle,
+          padding: '14px 18px',
+          display: 'flex', alignItems: 'center', gap: '0', flexWrap: 'wrap',
+        }}>
+          <div style={{ fontSize: '10.5px', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--pg-text-muted)', marginRight: '18px', whiteSpace: 'nowrap' }}>
+            Inspection Summary
+          </div>
+          <div style={{ display: 'flex', gap: '0', flexWrap: 'wrap', flex: 1 }}>
+            {[
+              { label: 'Passed', val: passed, icon: CheckCircle2, color: '#1B6B35', bg: '#EBF5EE', border: '#A8D5B5' },
+              { label: 'Requires Review', val: needsReview, icon: AlertTriangle, color: '#8A5C00', bg: '#FEF7EC', border: '#F0C878' },
+              { label: 'Not Detected', val: notDetected, icon: XCircle, color: '#6B6560', bg: '#F7F5F0', border: '#D4CFC8' },
+              { label: 'Total Checks', val: decls.length, icon: ShieldCheck, color: 'var(--pg-pending-text)', bg: 'var(--pg-pending-bg)', border: 'var(--pg-pending-border)' },
+              ...(avgConf !== null ? [{ label: 'Avg. Confidence', val: `${avgConf}%`, icon: ShieldCheck, color: 'var(--pg-accent)', bg: 'var(--pg-accent-muted)', border: '#A8D5B5' }] : []),
+            ].map((item, i, arr) => {
+              const Icon = item.icon;
+              return (
+                <div key={i} style={{
+                  display: 'flex', alignItems: 'center', gap: '8px',
+                  padding: '6px 16px',
+                  borderRight: i < arr.length - 1 ? '1px solid var(--pg-border)' : 'none',
+                  flexShrink: 0,
+                }}>
+                  <div style={{
+                    width: '26px', height: '26px', borderRadius: '6px',
+                    backgroundColor: item.bg, border: `1px solid ${item.border}`,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+                  }}>
+                    <Icon style={{ width: '12px', height: '12px', color: item.color }} />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '16px', fontWeight: 800, color: item.color, lineHeight: 1, fontVariantNumeric: 'tabular-nums' }}>{item.val}</div>
+                    <div style={{ fontSize: '10px', color: 'var(--pg-text-muted)', marginTop: '1px' }}>{item.label}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── MAIN TWO-COLUMN LAYOUT ───────────────────────────────────── */}
+      <div style={{ display: 'grid', gap: '20px', alignItems: 'flex-start' }} className="pg-result-grid">
+
+        {/* LEFT — Image + OCR + Evidence */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <ImageGallery
             images={inspection.images}
             netQuantity={inspection.declarations?.find(d => d.field === 'Net Quantity')?.detectedValue || '500 g'}
           />
-
-          {/* Raw OCR Text Panel */}
           <OcrPanel rawText={inspection.rawOcrText} detectedFields={detectedTokens} />
-
-          {/* Evidence Regions */}
           <EvidenceViewer evidence={inspection.evidence} />
         </div>
 
-        {/* RIGHT COLUMN: Declarations, Compliance Table & Violations */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Extracted Declarations Compliance Table */}
+        {/* RIGHT — Declarations, Checklist, Issues, Disclaimer */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <DeclarationCard declarations={inspection.declarations} onUpdateDeclarations={handleUpdateDeclarations} />
-
-          {/* Rule Compliance Checklist */}
           <ComplianceChecklist checklist={inspection.checklist} />
-
-          {/* Identified Violations & Evidence Cards */}
           <PotentialIssue issues={inspection.issues} />
 
-          {/* Statutory Legal Positioning Disclaimer */}
-          <div className="p-3.5 bg-slate-900 border border-slate-800 rounded-xl text-xs text-slate-400 flex items-start space-x-2.5">
-            <AlertCircle className="w-4 h-4 text-indigo-400 shrink-0 mt-0.5" />
-            <p className="leading-relaxed">
-              <strong className="text-slate-200">Statutory Disclaimer:</strong> This AI-assisted assessment supports inspector review and does not constitute a final legal determination.
+          {/* Disclaimer */}
+          <div style={{
+            display: 'flex', alignItems: 'flex-start', gap: '8px',
+            padding: '10px 14px',
+            backgroundColor: 'var(--pg-surface-subtle)',
+            border: '1px solid var(--pg-border)',
+            borderRadius: '6px',
+          }}>
+            <AlertCircle style={{ width: '13px', height: '13px', color: 'var(--pg-text-muted)', flexShrink: 0, marginTop: '1px' }} />
+            <p style={{ fontSize: '11.5px', color: 'var(--pg-text-muted)', lineHeight: 1.55, margin: 0 }}>
+              <strong style={{ color: 'var(--pg-text-secondary)' }}>Statutory Notice: </strong>
+              This AI-assisted assessment supports inspector review and does not constitute a final legal determination under the Legal Metrology Act 2009.
             </p>
           </div>
         </div>

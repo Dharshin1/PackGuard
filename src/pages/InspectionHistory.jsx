@@ -3,20 +3,34 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import InspectionTable from '../components/inspection/InspectionTable';
 import EmptyState from '../components/common/EmptyState';
 import { useInspections } from '../context/InspectionContext';
-import { Search, Plus, RefreshCw } from 'lucide-react';
+import { Search, Plus, RefreshCw, Filter, ClipboardList } from 'lucide-react';
+
+/* ─── shared token shorthands ─── */
+const input = {
+  width: '100%',
+  backgroundColor: '#FFFFFF',
+  border: '1px solid var(--pg-border)',
+  borderRadius: '6px',
+  fontSize: '13px',
+  color: 'var(--pg-text-primary)',
+  padding: '8px 12px',
+  outline: 'none',
+  height: '36px',
+  boxSizing: 'border-box',
+  transition: 'border-color 0.15s ease',
+};
 
 const InspectionHistory = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { inspections } = useInspections();
 
-  // Filter states: Search, Status filter, Date filter
+  // ── Filter State — unchanged logic ──────────────────────────────
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [statusFilter, setStatusFilter] = useState('All');
   const [dateFilter, setDateFilter] = useState('All');
 
   const filteredInspections = inspections.filter((item) => {
-    // Search
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
       const matches =
@@ -26,8 +40,6 @@ const InspectionHistory = () => {
         (item.location && item.location.toLowerCase().includes(q));
       if (!matches) return false;
     }
-
-    // Status filter
     if (statusFilter !== 'All') {
       if (statusFilter === 'Requires Review') {
         if (item.status !== 'Requires Inspector Review' && item.status !== 'Requires Review') return false;
@@ -35,8 +47,6 @@ const InspectionHistory = () => {
         return false;
       }
     }
-
-    // Date filter
     if (dateFilter !== 'All') {
       const itemDate = new Date(item.date);
       const now = new Date();
@@ -44,7 +54,6 @@ const InspectionHistory = () => {
       if (dateFilter === '7d' && diffDays > 7) return false;
       if (dateFilter === '30d' && diffDays > 30) return false;
     }
-
     return true;
   });
 
@@ -54,65 +63,132 @@ const InspectionHistory = () => {
     setDateFilter('All');
   };
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
-        <div>
-          <h1 className="text-xl font-bold text-white">Inspection History</h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Database log of completed packaged commodity inspections.
-          </p>
-        </div>
+  const hasActiveFilters = searchQuery || statusFilter !== 'All' || dateFilter !== 'All';
 
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+      {/* ── Action row — shell Header already shows page title ─────── */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        paddingBottom: '16px',
+        borderBottom: '1px solid var(--pg-border)',
+      }}>
         {inspections.length > 0 && (
           <button
             onClick={() => navigate('/new-inspection')}
-            className="inline-flex items-center space-x-1.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition-colors shadow-sm shrink-0"
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '6px',
+              backgroundColor: 'var(--pg-accent)', color: '#ffffff',
+              fontSize: '12.5px', fontWeight: 600,
+              padding: '8px 16px', borderRadius: '6px',
+              border: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
+              transition: 'background-color 0.12s ease',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--pg-accent-hover)'; }}
+            onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'var(--pg-accent)'; }}
           >
-            <Plus className="w-4 h-4" />
+            <Plus style={{ width: '13px', height: '13px' }} />
             <span>New Inspection</span>
           </button>
         )}
       </div>
 
+      {/* ── EMPTY STATE (no inspections at all) ────────────────────── */}
       {inspections.length === 0 ? (
         <EmptyState
-          title="No inspections found"
-          description="Completed inspections will appear here."
+          title="No inspections recorded yet"
+          description="Completed inspections will appear here. Start by uploading a packaged commodity image."
+          icon={ClipboardList}
           actionButton={
             <button
               onClick={() => navigate('/new-inspection')}
-              className="inline-flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-lg text-xs shadow-md transition-colors"
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: '6px',
+                backgroundColor: 'var(--pg-accent)', color: '#ffffff',
+                fontSize: '12.5px', fontWeight: 600,
+                padding: '8px 18px', borderRadius: '6px',
+                border: 'none', cursor: 'pointer',
+                transition: 'background-color 0.15s ease',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--pg-accent-hover)'; }}
+              onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'var(--pg-accent)'; }}
             >
-              <Plus className="w-4 h-4" />
-              <span>Start New Inspection</span>
+              <Plus style={{ width: '13px', height: '13px' }} />
+              <span>Start First Inspection</span>
             </button>
           }
         />
       ) : (
-        <div className="space-y-4">
-          {/* Filter Bar */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-lg space-y-3">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+
+          {/* ── FILTER / SEARCH TOOLBAR ─────────────────────────────── */}
+          <div style={{
+            backgroundColor: '#FFFFFF',
+            border: '1px solid var(--pg-border)',
+            borderRadius: '8px',
+            padding: '12px 14px',
+            boxShadow: 'var(--pg-shadow-sm)',
+          }}>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr auto auto',
+              gap: '10px',
+              alignItems: 'center',
+            }}
+              className="pg-filter-grid"
+            >
               {/* Search */}
-              <div className="relative">
-                <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <div style={{ position: 'relative', minWidth: 0 }}>
+                <Search style={{
+                  width: '13px', height: '13px',
+                  color: 'var(--pg-text-muted)',
+                  position: 'absolute', left: '10px',
+                  top: '50%', transform: 'translateY(-50%)',
+                  pointerEvents: 'none',
+                }} />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder="Search ID or product..."
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg pl-9 pr-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+                  placeholder="Search by inspection ID or product name…"
+                  style={{ ...input, paddingLeft: '32px' }}
+                  onFocus={e => { e.target.style.borderColor = 'var(--pg-accent)'; e.target.style.boxShadow = '0 0 0 2px var(--pg-accent-muted)'; }}
+                  onBlur={e => { e.target.style.borderColor = 'var(--pg-border)'; e.target.style.boxShadow = 'none'; }}
                 />
               </div>
 
               {/* Status Filter */}
-              <div>
+              <div style={{ position: 'relative' }}>
+                <Filter style={{
+                  width: '11px', height: '11px',
+                  color: 'var(--pg-text-muted)',
+                  position: 'absolute', left: '10px',
+                  top: '50%', transform: 'translateY(-50%)',
+                  pointerEvents: 'none',
+                }} />
                 <select
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
+                  style={{
+                    ...input,
+                    paddingLeft: '28px',
+                    width: 'auto',
+                    minWidth: '190px',
+                    appearance: 'none',
+                    cursor: 'pointer',
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237A7773' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
+                    backgroundRepeat: 'no-repeat',
+                    backgroundPosition: 'right 10px center',
+                    paddingRight: '28px',
+                    backgroundColor: statusFilter !== 'All' ? 'var(--pg-accent-muted)' : '#FFFFFF',
+                    borderColor: statusFilter !== 'All' ? '#A8D5B5' : 'var(--pg-border)',
+                    color: statusFilter !== 'All' ? 'var(--pg-accent-text)' : 'var(--pg-text-primary)',
+                  }}
+                  onFocus={e => { e.target.style.borderColor = 'var(--pg-accent)'; }}
+                  onBlur={e => { e.target.style.borderColor = statusFilter !== 'All' ? '#A8D5B5' : 'var(--pg-border)'; }}
                 >
                   <option value="All">All Assessment Statuses</option>
                   <option value="Compliant">Compliant</option>
@@ -122,43 +198,108 @@ const InspectionHistory = () => {
               </div>
 
               {/* Date Filter */}
-              <div>
-                <select
-                  value={dateFilter}
-                  onChange={(e) => setDateFilter(e.target.value)}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-slate-200 focus:outline-none focus:border-indigo-500"
-                >
-                  <option value="All">All Dates</option>
-                  <option value="7d">Last 7 Days</option>
-                  <option value="30d">Last 30 Days</option>
-                </select>
-              </div>
+              <select
+                value={dateFilter}
+                onChange={(e) => setDateFilter(e.target.value)}
+                style={{
+                  ...input,
+                  width: 'auto',
+                  minWidth: '140px',
+                  appearance: 'none',
+                  cursor: 'pointer',
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237A7773' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
+                  backgroundRepeat: 'no-repeat',
+                  backgroundPosition: 'right 10px center',
+                  paddingRight: '28px',
+                  backgroundColor: dateFilter !== 'All' ? 'var(--pg-pending-bg)' : '#FFFFFF',
+                  borderColor: dateFilter !== 'All' ? 'var(--pg-pending-border)' : 'var(--pg-border)',
+                  color: dateFilter !== 'All' ? 'var(--pg-pending-text)' : 'var(--pg-text-primary)',
+                }}
+                onFocus={e => { e.target.style.borderColor = 'var(--pg-accent)'; }}
+                onBlur={e => { e.target.style.borderColor = dateFilter !== 'All' ? 'var(--pg-pending-border)' : 'var(--pg-border)'; }}
+              >
+                <option value="All">All Dates</option>
+                <option value="7d">Last 7 Days</option>
+                <option value="30d">Last 30 Days</option>
+              </select>
             </div>
 
-            {(searchQuery || statusFilter !== 'All' || dateFilter !== 'All') && (
-              <div className="flex items-center justify-between pt-2 border-t border-slate-800 text-xs">
-                <span className="text-slate-400">
-                  Showing {filteredInspections.length} of {inspections.length} cases
+            {/* Active filter indicator */}
+            {hasActiveFilters && (
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                marginTop: '10px', paddingTop: '10px',
+                borderTop: '1px solid var(--pg-border)',
+              }}>
+                <span style={{ fontSize: '12px', color: 'var(--pg-text-muted)' }}>
+                  Showing&nbsp;
+                  <strong style={{ color: 'var(--pg-text-primary)', fontWeight: 600 }}>
+                    {filteredInspections.length}
+                  </strong>
+                  &nbsp;of&nbsp;
+                  <strong style={{ color: 'var(--pg-text-primary)', fontWeight: 600 }}>
+                    {inspections.length}
+                  </strong>
+                  &nbsp;inspection{inspections.length !== 1 ? 's' : ''}
                 </span>
                 <button
                   onClick={handleResetFilters}
-                  className="inline-flex items-center space-x-1 text-slate-400 hover:text-white"
+                  style={{
+                    display: 'inline-flex', alignItems: 'center', gap: '5px',
+                    fontSize: '12px', fontWeight: 500,
+                    color: 'var(--pg-accent)', background: 'none', border: 'none',
+                    cursor: 'pointer', padding: '2px 0',
+                    transition: 'opacity 0.12s',
+                  }}
+                  onMouseEnter={e => { e.currentTarget.style.opacity = '0.75'; }}
+                  onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
                 >
-                  <RefreshCw className="w-3 h-3" />
-                  <span>Reset Filters</span>
+                  <RefreshCw style={{ width: '11px', height: '11px' }} />
+                  <span>Reset filters</span>
                 </button>
               </div>
             )}
           </div>
 
-          {/* Table */}
+          {/* ── TABLE or NO-MATCH EMPTY STATE ───────────────────────── */}
           {filteredInspections.length > 0 ? (
             <InspectionTable inspections={filteredInspections} />
           ) : (
             <EmptyState
-              title="No matching inspections found"
-              description="Try adjusting search or status filters."
+              title="No matching inspections"
+              description="No inspections match the current search or filter criteria. Try adjusting your search."
             />
+          )}
+
+          {/* ── TASTEFUL BOTTOM NOTICE (when real data < full page) ─── */}
+          {filteredInspections.length > 0 && filteredInspections.length < 6 && !hasActiveFilters && (
+            <div style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '12px 16px',
+              backgroundColor: 'var(--pg-surface-subtle)',
+              border: '1px solid var(--pg-border)',
+              borderRadius: '6px',
+            }}>
+              <span style={{ fontSize: '12px', color: 'var(--pg-text-muted)' }}>
+                {filteredInspections.length} inspection{filteredInspections.length !== 1 ? 's' : ''} in the registry.
+                New inspections will appear here as they are completed.
+              </span>
+              <button
+                onClick={() => navigate('/new-inspection')}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '5px',
+                  fontSize: '12px', fontWeight: 600,
+                  color: 'var(--pg-accent)', background: 'none', border: 'none',
+                  cursor: 'pointer', padding: 0, whiteSpace: 'nowrap',
+                  transition: 'opacity 0.12s',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.opacity = '0.75'; }}
+                onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
+              >
+                <Plus style={{ width: '11px', height: '11px' }} />
+                <span>Start new inspection</span>
+              </button>
+            </div>
           )}
         </div>
       )}

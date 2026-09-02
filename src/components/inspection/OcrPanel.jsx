@@ -1,6 +1,11 @@
 import React, { useState } from 'react';
 import { FileText, ChevronDown, ChevronUp, Copy, Check } from 'lucide-react';
 
+/**
+ * OcrPanel — Raw OCR text stream panel.
+ * All state, handlers, and logic preserved exactly.
+ * Visual redesign: light outer container, dark pre block kept for readability.
+ */
 const OcrPanel = ({ rawText, detectedFields = [] }) => {
   const [expanded, setExpanded] = useState(true);
   const [copied, setCopied] = useState(false);
@@ -25,52 +30,97 @@ COUNTRY OF ORIGIN: INDIA
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-lg">
+    <div style={{
+      backgroundColor: 'var(--pg-surface)',
+      border: '1px solid var(--pg-border)',
+      borderRadius: '8px',
+      overflow: 'hidden',
+      boxShadow: 'var(--pg-shadow-sm)',
+    }}>
+      {/* Clickable header */}
       <div
         onClick={() => setExpanded(!expanded)}
-        className="px-5 py-3.5 bg-slate-950 border-b border-slate-800 flex items-center justify-between cursor-pointer select-none"
+        style={{
+          padding: '11px 14px',
+          backgroundColor: 'var(--pg-surface-subtle)',
+          borderBottom: expanded ? '1px solid var(--pg-border)' : 'none',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+          cursor: 'pointer', userSelect: 'none',
+        }}
       >
-        <div className="flex items-center space-x-2">
-          <FileText className="w-4 h-4 text-indigo-400" />
-          <h3 className="text-sm font-bold text-white">Raw OCR Text Stream</h3>
-          <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 border border-indigo-500/30">
-            Tesseract OCR Engine
+        <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+          <FileText style={{ width: '13px', height: '13px', color: 'var(--pg-text-muted)' }} />
+          <h3 style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--pg-text-primary)', margin: 0, letterSpacing: '-0.01em' }}>
+            Raw OCR Text Stream
+          </h3>
+          <span style={{
+            fontSize: '9.5px', fontWeight: 600, fontFamily: 'monospace',
+            padding: '2px 7px', borderRadius: '3px',
+            backgroundColor: 'var(--pg-accent-muted)', border: '1px solid #A8D5B5',
+            color: 'var(--pg-accent-text)',
+          }}>
+            Tesseract OCR
           </span>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
           <button
             type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleCopy();
+            onClick={(e) => { e.stopPropagation(); handleCopy(); }}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '4px',
+              padding: '4px 9px', borderRadius: '4px',
+              backgroundColor: 'var(--pg-surface)', border: '1px solid var(--pg-border)',
+              fontSize: '11px', color: 'var(--pg-text-muted)', cursor: 'pointer',
+              transition: 'border-color 0.12s, color 0.12s',
             }}
-            className="p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] font-medium flex items-center space-x-1 transition-colors"
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--pg-border-strong)'; e.currentTarget.style.color = 'var(--pg-text-primary)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--pg-border)'; e.currentTarget.style.color = 'var(--pg-text-muted)'; }}
             title="Copy OCR text"
           >
-            {copied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-            <span className="hidden sm:inline">{copied ? 'Copied' : 'Copy'}</span>
+            {copied
+              ? <Check style={{ width: '11px', height: '11px', color: 'var(--pg-compliant-text)' }} />
+              : <Copy style={{ width: '11px', height: '11px' }} />}
+            <span>{copied ? 'Copied' : 'Copy'}</span>
           </button>
-          {expanded ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+          {expanded
+            ? <ChevronUp style={{ width: '14px', height: '14px', color: 'var(--pg-text-muted)' }} />
+            : <ChevronDown style={{ width: '14px', height: '14px', color: 'var(--pg-text-muted)' }} />}
         </div>
       </div>
 
+      {/* Body — dark pre block kept intentionally for readability */}
       {expanded && (
-        <div className="p-4 space-y-3 bg-slate-950/60">
-          <pre className="text-[11px] font-mono text-slate-300 leading-relaxed overflow-x-auto p-3 bg-slate-950 rounded-lg border border-slate-800 whitespace-pre-wrap">
+        <div style={{ padding: '12px', backgroundColor: '#FAFAFA' }}>
+          <pre style={{
+            fontSize: '10.5px', fontFamily: 'monospace',
+            color: '#E2E8F0', lineHeight: 1.7,
+            overflowX: 'auto', whiteSpace: 'pre-wrap',
+            margin: 0,
+            padding: '12px 14px',
+            backgroundColor: 'var(--pg-navy)',
+            border: '1px solid var(--pg-navy-border)',
+            borderRadius: '5px',
+          }}>
             {sampleRawText}
           </pre>
 
           {detectedFields.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 pt-1">
-              <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mr-1 self-center">
-                Detected Tokens:
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', paddingTop: '10px', alignItems: 'center' }}>
+              <span style={{
+                fontSize: '9.5px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em',
+                color: 'var(--pg-text-muted)', marginRight: '4px',
+              }}>
+                Detected:
               </span>
               {detectedFields.map((field, idx) => (
-                <span
-                  key={idx}
-                  className="px-2 py-0.5 rounded text-[10px] font-mono font-medium bg-slate-800 text-indigo-300 border border-slate-700"
-                >
+                <span key={idx} style={{
+                  padding: '2px 8px', borderRadius: '3px',
+                  fontSize: '10px', fontFamily: 'monospace', fontWeight: 600,
+                  backgroundColor: 'var(--pg-accent-muted)',
+                  border: '1px solid #A8D5B5',
+                  color: 'var(--pg-accent-text)',
+                }}>
                   {field}
                 </span>
               ))}

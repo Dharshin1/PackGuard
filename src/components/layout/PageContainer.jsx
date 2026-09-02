@@ -4,17 +4,35 @@ import Header from './Header';
 
 const PageContainer = ({ children }) => {
   return (
-    <div className="flex min-h-screen bg-slate-950 text-slate-100 font-sans">
+    <div style={{
+      display: 'flex',
+      minHeight: '100vh',
+      backgroundColor: 'var(--pg-bg)',
+      color: 'var(--pg-text-primary)',
+    }}>
       {/* Persistent Left Sidebar */}
       <Sidebar />
 
       {/* Main Content Layout */}
-      <div className="flex-1 flex flex-col min-w-0">
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         {/* Top Header */}
         <Header />
 
         {/* Dynamic Page Content */}
-        <main className="flex-1 p-6 overflow-y-auto max-w-7xl w-full mx-auto space-y-6">
+        <main
+          data-pg-main
+          style={{
+            flex: 1,
+            padding: '24px 32px',
+            overflowY: 'auto',
+            maxWidth: '1350px',
+            width: '100%',
+            margin: '0 auto',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0',
+          }}
+        >
           {children}
         </main>
       </div>

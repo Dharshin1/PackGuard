@@ -3,12 +3,25 @@ import { useNavigate } from 'react-router-dom';
 import StatusBadge from '../common/StatusBadge';
 import { Eye, FileText, Calendar } from 'lucide-react';
 
+/**
+ * InspectionTable — Inspection list table.
+ * All logic, handlers, navigation, and data access preserved exactly.
+ * Visual redesign: converted from dark Tailwind classes to design system tokens.
+ */
 const InspectionTable = ({ inspections = [] }) => {
   const navigate = useNavigate();
 
   if (!inspections || inspections.length === 0) {
     return (
-      <div className="p-8 text-center text-slate-500 text-xs bg-slate-900/60 rounded-xl border border-slate-800">
+      <div style={{
+        padding: '24px',
+        textAlign: 'center',
+        fontSize: '12.5px',
+        color: 'var(--pg-text-muted)',
+        backgroundColor: 'var(--pg-surface)',
+        border: '1px solid var(--pg-border)',
+        borderRadius: '8px',
+      }}>
         No inspections found matching criteria.
       </div>
     );
@@ -28,84 +41,154 @@ const InspectionTable = ({ inspections = [] }) => {
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-lg">
-      <div className="overflow-x-auto">
-        <table className="w-full text-left border-collapse">
+    <div style={{
+      backgroundColor: 'var(--pg-surface)',
+      border: '1px solid var(--pg-border)',
+      borderRadius: '8px',
+      overflow: 'hidden',
+      boxShadow: 'var(--pg-shadow-sm)',
+    }}>
+      <div style={{ overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+          <colgroup>
+            <col style={{ width: '18%' }} />
+            <col style={{ width: '24%' }} />
+            <col style={{ width: '14%' }} />
+            <col style={{ width: '22%' }} />
+            <col style={{ width: '12%' }} />
+            <col style={{ width: '10%' }} />
+          </colgroup>
           <thead>
-            <tr className="bg-slate-950/90 text-slate-400 text-[10px] font-bold uppercase tracking-wider border-b border-slate-800">
-              <th className="py-3.5 px-4">Inspection ID</th>
-              <th className="py-3.5 px-4">Product / Category</th>
-              <th className="py-3.5 px-4">Date</th>
-              <th className="py-3.5 px-4">Assessment Status</th>
-              <th className="py-3.5 px-4 text-center">Violations</th>
-              <th className="py-3.5 px-4 text-right">Action</th>
+            <tr style={{
+              backgroundColor: 'var(--pg-navy)',
+              borderBottom: '1px solid var(--pg-navy-border)',
+            }}>
+              {['Inspection ID', 'Product / Category', 'Date', 'Assessment Status', 'Flags', 'Action'].map((col, i) => (
+                <th key={col} style={{
+                  padding: '11px 14px',
+                  fontSize: '9.5px', fontWeight: 700,
+                  letterSpacing: '0.08em', textTransform: 'uppercase',
+                  color: 'rgba(255,255,255,0.45)',
+                  textAlign: i === 4 ? 'center' : i === 5 ? 'right' : 'left',
+                  whiteSpace: 'nowrap',
+                }}>
+                  {col}
+                </th>
+              ))}
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/60 text-xs">
-            {inspections.map((item) => {
+          <tbody>
+            {inspections.map((item, idx) => {
               const violationCount = item.issues?.length || 0;
+              const isEven = idx % 2 === 0;
 
               return (
                 <tr
                   key={item.id}
-                  className="hover:bg-slate-800/40 transition-colors group cursor-pointer"
+                  style={{
+                    backgroundColor: isEven ? 'var(--pg-surface)' : 'var(--pg-surface-subtle)',
+                    borderBottom: '1px solid var(--pg-border)',
+                    cursor: 'pointer',
+                    transition: 'background-color 0.1s ease',
+                  }}
                   onClick={() => navigate(`/inspection/${item.id}`)}
+                  onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--pg-accent-muted)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.backgroundColor = isEven ? 'var(--pg-surface)' : 'var(--pg-surface-subtle)'; }}
                 >
                   {/* Inspection ID */}
-                  <td className="py-3.5 px-4 font-mono font-bold text-indigo-400">
-                    {item.id}
+                  <td style={{ padding: '12px 14px', verticalAlign: 'middle' }}>
+                    <span style={{
+                      fontFamily: 'monospace', fontSize: '11px', fontWeight: 700,
+                      color: 'var(--pg-accent)',
+                      backgroundColor: 'var(--pg-accent-muted)', border: '1px solid #A8D5B5',
+                      borderRadius: '3px', padding: '2px 7px',
+                    }}>
+                      {item.id}
+                    </span>
                   </td>
 
                   {/* Product & Category */}
-                  <td className="py-3.5 px-4">
-                    <div className="font-bold text-slate-100 group-hover:text-indigo-300 transition-colors">
+                  <td style={{ padding: '12px 14px', verticalAlign: 'middle' }}>
+                    <div style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--pg-text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {item.productName}
                     </div>
-                    <div className="text-[10px] text-slate-500">{item.category}</div>
+                    <div style={{ fontSize: '10.5px', color: 'var(--pg-text-muted)', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {item.category}
+                    </div>
                   </td>
 
                   {/* Date */}
-                  <td className="py-3.5 px-4 text-slate-300">
-                    <div className="flex items-center space-x-1.5 text-xs text-slate-400">
-                      <Calendar className="w-3.5 h-3.5 text-slate-500" />
-                      <span>{formatDate(item.date)}</span>
+                  <td style={{ padding: '12px 14px', verticalAlign: 'middle' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                      <Calendar style={{ width: '11px', height: '11px', color: 'var(--pg-text-muted)', flexShrink: 0 }} />
+                      <span style={{ fontSize: '11.5px', color: 'var(--pg-text-secondary)', whiteSpace: 'nowrap' }}>
+                        {formatDate(item.date)}
+                      </span>
                     </div>
                   </td>
 
                   {/* Status */}
-                  <td className="py-3.5 px-4">
+                  <td style={{ padding: '12px 14px', verticalAlign: 'middle' }}>
                     <StatusBadge status={item.status} />
                   </td>
 
-                  {/* Violations Count */}
-                  <td className="py-3.5 px-4 text-center">
+                  {/* Violations */}
+                  <td style={{ padding: '12px 14px', verticalAlign: 'middle', textAlign: 'center' }}>
                     {violationCount > 0 ? (
-                      <span className="font-mono text-xs font-bold text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded border border-rose-500/20">
+                      <span style={{
+                        fontFamily: 'monospace', fontSize: '11px', fontWeight: 700,
+                        padding: '3px 8px', borderRadius: '3px',
+                        backgroundColor: 'var(--pg-fail-bg)', border: '1px solid var(--pg-fail-border)',
+                        color: 'var(--pg-fail-text)',
+                      }}>
                         {violationCount} Flag{violationCount > 1 ? 's' : ''}
                       </span>
                     ) : (
-                      <span className="font-mono text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
-                        0 Flags
+                      <span style={{
+                        fontFamily: 'monospace', fontSize: '11px', fontWeight: 700,
+                        padding: '3px 8px', borderRadius: '3px',
+                        backgroundColor: 'var(--pg-compliant-bg)', border: '1px solid var(--pg-compliant-border)',
+                        color: 'var(--pg-compliant-text)',
+                      }}>
+                        Clear
                       </span>
                     )}
                   </td>
 
                   {/* Action */}
-                  <td className="py-3.5 px-4 text-right" onClick={(e) => e.stopPropagation()}>
-                    <div className="flex items-center justify-end space-x-2">
+                  <td style={{ padding: '12px 14px', verticalAlign: 'middle', textAlign: 'right' }} onClick={(e) => e.stopPropagation()}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px' }}>
                       <button
                         onClick={() => navigate(`/inspection/${item.id}`)}
-                        className="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+                        style={{
+                          width: '28px', height: '28px', borderRadius: '5px', padding: 0,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          backgroundColor: 'var(--pg-surface-subtle)',
+                          border: '1px solid var(--pg-border)',
+                          color: 'var(--pg-text-muted)', cursor: 'pointer',
+                          transition: 'border-color 0.12s, color 0.12s',
+                        }}
                         title="View Inspection"
+                        onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--pg-accent)'; e.currentTarget.style.color = 'var(--pg-accent)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--pg-border)'; e.currentTarget.style.color = 'var(--pg-text-muted)'; }}
                       >
-                        <Eye className="w-4 h-4" />
+                        <Eye style={{ width: '13px', height: '13px' }} />
                       </button>
                       <button
                         onClick={() => navigate(`/report/${item.id}`)}
-                        className="p-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 transition-colors"
+                        style={{
+                          width: '28px', height: '28px', borderRadius: '5px', padding: 0,
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          backgroundColor: 'var(--pg-accent-muted)',
+                          border: '1px solid #A8D5B5',
+                          color: 'var(--pg-accent)', cursor: 'pointer',
+                          transition: 'background-color 0.12s',
+                        }}
                         title="Generate Report"
+                        onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--pg-accent)'; e.currentTarget.style.color = '#fff'; e.currentTarget.style.borderColor = 'var(--pg-accent)'; }}
+                        onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'var(--pg-accent-muted)'; e.currentTarget.style.color = 'var(--pg-accent)'; e.currentTarget.style.borderColor = '#A8D5B5'; }}
                       >
-                        <FileText className="w-4 h-4" />
+                        <FileText style={{ width: '13px', height: '13px' }} />
                       </button>
                     </div>
                   </td>

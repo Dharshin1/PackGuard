@@ -9,7 +9,6 @@ import {
   AlertTriangle,
   FileText,
   Plus,
-  Sparkles,
   History
 } from 'lucide-react';
 
@@ -17,7 +16,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const { inspections, loadDemoPresets } = useInspections();
 
-  // Dynamic metrics from real data
+  // Dynamic metrics from real data — unchanged
   const totalInspections = inspections.length;
   const requiresReviewCount = inspections.filter(
     (i) => i.status === 'Requires Inspector Review' || i.status === 'Requires Review'
@@ -25,37 +24,52 @@ const Dashboard = () => {
   const reportsGeneratedCount = inspections.length;
 
   return (
-    <div className="space-y-6">
-      {/* Header & Hero Section */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-        <div className="space-y-2">
-          <h1 className="text-2xl font-extrabold text-white tracking-tight">
-            PackSure AI Enforcement Hub
-          </h1>
-          <p className="text-xs text-slate-300 max-w-xl leading-relaxed">
-            AI-assisted declaration extraction and rule-based compliance assessment for packaged commodities.
-          </p>
-        </div>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
 
-        <div className="flex flex-col sm:flex-row gap-3 shrink-0">
-
-
-          <button
-            onClick={() => navigate('/new-inspection')}
-            className="inline-flex items-center justify-center space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2.5 rounded-xl transition-colors text-xs shadow-md"
-          >
-            <Plus className="w-4 h-4" />
-            <span>+ New Product Inspection</span>
-          </button>
-        </div>
+      {/* ── Primary action row ─────────────────────────────────────── */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        paddingBottom: '16px',
+        borderBottom: '1px solid var(--pg-border)',
+      }}>
+        <button
+          onClick={() => navigate('/new-inspection')}
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: '6px',
+            backgroundColor: 'var(--pg-accent)', color: '#ffffff',
+            fontSize: '12.5px', fontWeight: 600,
+            padding: '8px 16px', borderRadius: '6px',
+            border: 'none', cursor: 'pointer', whiteSpace: 'nowrap',
+            transition: 'background-color 0.15s ease',
+          }}
+          onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--pg-accent-hover)'; }}
+          onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'var(--pg-accent)'; }}
+        >
+          <Plus style={{ width: '14px', height: '14px' }} />
+          <span>New Product Inspection</span>
+        </button>
       </div>
 
-      {/* Overview Stat Cards */}
-      <div className="space-y-2">
-        <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+
+      {/* ── Overview Metrics ─────────────────────────────────────── */}
+      <div>
+        <p style={{
+          fontSize: '10.5px',
+          fontWeight: 600,
+          letterSpacing: '0.07em',
+          textTransform: 'uppercase',
+          color: 'var(--pg-text-muted)',
+          marginBottom: '10px',
+        }}>
           Overview
-        </h3>
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        </p>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: '14px',
+        }}>
           <StatCard
             title="Total Inspections"
             value={totalInspections || '—'}
@@ -77,46 +91,118 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Quick Actions Panel */}
-      <div className="bg-slate-900/60 border border-slate-800 rounded-xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <span className="text-xs font-bold text-slate-300">Quick Actions:</span>
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            onClick={() => navigate('/new-inspection')}
-            className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-indigo-600/20 text-slate-200 border border-slate-700 text-xs font-medium transition-colors"
-          >
-            <Plus className="w-3.5 h-3.5 text-indigo-400" />
-            <span>New Inspection</span>
-          </button>
+      {/* ── Quick Actions (secondary, no duplicates) ─────────────── */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        flexWrap: 'wrap',
+      }}>
+        <span style={{
+          fontSize: '10.5px',
+          fontWeight: 600,
+          letterSpacing: '0.06em',
+          textTransform: 'uppercase',
+          color: 'var(--pg-text-muted)',
+          marginRight: '4px',
+        }}>
+          Navigate:
+        </span>
 
-          <button
-            onClick={() => navigate('/history')}
-            className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-indigo-600/20 text-slate-200 border border-slate-700 text-xs font-medium transition-colors"
-          >
-            <History className="w-3.5 h-3.5 text-indigo-400" />
-            <span>Inspection History</span>
-          </button>
+        {/* Inspection History — secondary ghost link */}
+        <button
+          onClick={() => navigate('/history')}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '5px',
+            backgroundColor: 'var(--pg-surface)',
+            color: 'var(--pg-text-secondary)',
+            fontSize: '12px',
+            fontWeight: 500,
+            padding: '5px 12px',
+            borderRadius: '5px',
+            border: '1px solid var(--pg-border)',
+            cursor: 'pointer',
+            transition: 'border-color 0.12s ease, color 0.12s ease',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.borderColor = 'var(--pg-border-strong)';
+            e.currentTarget.style.color = 'var(--pg-text-primary)';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.borderColor = 'var(--pg-border)';
+            e.currentTarget.style.color = 'var(--pg-text-secondary)';
+          }}
+        >
+          <History style={{ width: '12px', height: '12px' }} />
+          <span>Inspection Log</span>
+        </button>
 
-          <button
-            onClick={() => navigate('/reports')}
-            className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-indigo-600/20 text-slate-200 border border-slate-700 text-xs font-medium transition-colors"
-          >
-            <FileText className="w-3.5 h-3.5 text-indigo-400" />
-            <span>Reports</span>
-          </button>
-        </div>
+        {/* Reports — secondary ghost link */}
+        <button
+          onClick={() => navigate('/reports')}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '5px',
+            backgroundColor: 'var(--pg-surface)',
+            color: 'var(--pg-text-secondary)',
+            fontSize: '12px',
+            fontWeight: 500,
+            padding: '5px 12px',
+            borderRadius: '5px',
+            border: '1px solid var(--pg-border)',
+            cursor: 'pointer',
+            transition: 'border-color 0.12s ease, color 0.12s ease',
+          }}
+          onMouseEnter={e => {
+            e.currentTarget.style.borderColor = 'var(--pg-border-strong)';
+            e.currentTarget.style.color = 'var(--pg-text-primary)';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.borderColor = 'var(--pg-border)';
+            e.currentTarget.style.color = 'var(--pg-text-secondary)';
+          }}
+        >
+          <FileText style={{ width: '12px', height: '12px' }} />
+          <span>Statutory Reports</span>
+        </button>
       </div>
 
-      {/* Recent Inspections Table or Intentional Empty State */}
-      <div className="space-y-3 pt-2">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-bold text-white">Recent Inspections</h3>
+      {/* ── Recent Inspections ───────────────────────────────────── */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}>
+          <h2 style={{
+            fontSize: '13.5px',
+            fontWeight: 600,
+            color: 'var(--pg-text-primary)',
+            margin: 0,
+            letterSpacing: '-0.01em',
+          }}>
+            Recent Inspections
+          </h2>
           {totalInspections > 0 && (
             <button
               onClick={() => navigate('/history')}
-              className="text-xs text-indigo-400 hover:text-indigo-300 font-semibold"
+              style={{
+                fontSize: '12px',
+                fontWeight: 500,
+                color: 'var(--pg-accent)',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: 0,
+                transition: 'color 0.12s ease',
+              }}
+              onMouseEnter={e => { e.currentTarget.style.color = 'var(--pg-accent-hover)'; }}
+              onMouseLeave={e => { e.currentTarget.style.color = 'var(--pg-accent)'; }}
             >
-              View All History →
+              View all →
             </button>
           )}
         </div>
@@ -130,15 +216,25 @@ const Dashboard = () => {
             actionButton={
               <button
                 onClick={() => navigate('/new-inspection')}
-                className="inline-flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-lg text-xs shadow-md transition-colors"
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: '6px',
+                  backgroundColor: 'var(--pg-accent)', color: '#ffffff',
+                  fontSize: '12.5px', fontWeight: 600,
+                  padding: '8px 18px', borderRadius: '6px',
+                  border: 'none', cursor: 'pointer',
+                  transition: 'background-color 0.15s ease',
+                }}
+                onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--pg-accent-hover)'; }}
+                onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'var(--pg-accent)'; }}
               >
-                <Plus className="w-4 h-4" />
+                <Plus style={{ width: '13px', height: '13px' }} />
                 <span>Start Inspection</span>
               </button>
             }
           />
         )}
       </div>
+
     </div>
   );
 };

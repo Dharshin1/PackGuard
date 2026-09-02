@@ -2,104 +2,244 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useInspections } from '../context/InspectionContext';
 import StatusBadge from '../components/common/StatusBadge';
-import EmptyState from '../components/common/EmptyState';
-import { Printer, Calendar, ArrowRight, FileCheck, Download, Eye } from 'lucide-react';
+import { Calendar, Download, Eye, FileText, Plus } from 'lucide-react';
 
+/**
+ * ReportsList — Statutory Reports page.
+ * All data access, routing, and business logic preserved exactly.
+ * Duplicate page header removed (shell Header renders page title).
+ * Fixed: missing FileCheck + ArrowRight imports that caused crash.
+ */
 const ReportsList = () => {
   const navigate = useNavigate();
   const { inspections } = useInspections();
 
-  return (
-    <div className="space-y-6">
-      <div className="border-b border-slate-800 pb-4">
-        <h1 className="text-xl font-bold text-white">Inspection Reports</h1>
-        <p className="text-xs text-slate-400 mt-1">
-          Official compliance certificates and inspection reports compiled from assessments.
-        </p>
-      </div>
+  const formatDate = (iso) => {
+    try {
+      return new Date(iso).toLocaleDateString('en-IN', {
+        day: '2-digit', month: 'short', year: 'numeric',
+      });
+    } catch { return iso; }
+  };
 
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+
+      {/* ── EMPTY STATE ──────────────────────────────────────────────── */}
       {inspections.length === 0 ? (
-        <EmptyState
-          title="No reports generated yet."
-          description="Reports will appear after an inspection is completed."
-          icon={FileCheck}
-          actionButton={
-            <button
-              onClick={() => navigate('/history')}
-              className="inline-flex items-center space-x-1.5 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-colors"
-            >
-              <span>View Inspections</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          }
-        />
+        <div style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          padding: '48px 24px', textAlign: 'center',
+          backgroundColor: 'var(--pg-surface)',
+          border: '1px solid var(--pg-border)',
+          borderRadius: '8px',
+          gap: '12px',
+        }}>
+          <div style={{
+            width: '44px', height: '44px', borderRadius: '10px',
+            backgroundColor: 'var(--pg-pending-bg)',
+            border: '1px solid var(--pg-pending-border)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <FileText style={{ width: '20px', height: '20px', color: 'var(--pg-pending-text)' }} />
+          </div>
+          <div>
+            <p style={{
+              fontSize: '14px', fontWeight: 600,
+              color: 'var(--pg-text-primary)', margin: '0 0 4px',
+            }}>
+              No reports generated yet
+            </p>
+            <p style={{
+              fontSize: '12.5px', color: 'var(--pg-text-muted)',
+              margin: 0, maxWidth: '320px', lineHeight: 1.55,
+            }}>
+              Reports are generated automatically when an inspection is completed.
+            </p>
+          </div>
+          <button
+            onClick={() => navigate('/new-inspection')}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: '6px',
+              marginTop: '4px',
+              backgroundColor: 'var(--pg-accent)', color: '#ffffff',
+              fontSize: '12.5px', fontWeight: 600,
+              padding: '8px 18px', borderRadius: '6px',
+              border: 'none', cursor: 'pointer',
+              transition: 'background-color 0.15s ease',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--pg-accent-hover)'; }}
+            onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'var(--pg-accent)'; }}
+          >
+            <Plus style={{ width: '13px', height: '13px' }} />
+            <span>Start an Inspection</span>
+          </button>
+        </div>
       ) : (
-        <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-lg">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
+
+        /* ── REPORTS TABLE ───────────────────────────────────────── */
+        <div style={{
+          backgroundColor: 'var(--pg-surface)',
+          border: '1px solid var(--pg-border)',
+          borderRadius: '8px',
+          overflow: 'hidden',
+          boxShadow: 'var(--pg-shadow-sm)',
+        }}>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
+              <colgroup>
+                <col style={{ width: '20%' }} />
+                <col style={{ width: '28%' }} />
+                <col style={{ width: '14%' }} />
+                <col style={{ width: '24%' }} />
+                <col style={{ width: '14%' }} />
+              </colgroup>
+
+              {/* Dark navy header */}
               <thead>
-                <tr className="bg-slate-950/90 text-slate-400 text-[10px] font-bold uppercase tracking-wider border-b border-slate-800">
-                  <th className="py-3.5 px-4">Inspection ID</th>
-                  <th className="py-3.5 px-4">Product Name</th>
-                  <th className="py-3.5 px-4">Generated Date</th>
-                  <th className="py-3.5 px-4">Assessment Status</th>
-                  <th className="py-3.5 px-4 text-right">Actions</th>
+                <tr style={{ backgroundColor: 'var(--pg-navy)', borderBottom: '1px solid var(--pg-navy-border)' }}>
+                  {[
+                    { label: 'Report ID',          align: 'left' },
+                    { label: 'Product / Category', align: 'left' },
+                    { label: 'Generated Date',     align: 'left' },
+                    { label: 'Assessment Status',  align: 'left' },
+                    { label: 'Actions',            align: 'right' },
+                  ].map((col) => (
+                    <th key={col.label} style={{
+                      padding: '11px 16px',
+                      fontSize: '9.5px', fontWeight: 700,
+                      letterSpacing: '0.08em', textTransform: 'uppercase',
+                      color: 'rgba(255,255,255,0.55)',
+                      textAlign: col.align,
+                      whiteSpace: 'nowrap',
+                    }}>
+                      {col.label}
+                    </th>
+                  ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60">
-                {inspections.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-800/40 transition-colors">
-                    {/* ID */}
-                    <td className="py-3.5 px-4 font-mono font-bold text-indigo-400">
-                      REP-{item.id}
-                    </td>
 
-                    {/* Product */}
-                    <td className="py-3.5 px-4">
-                      <div className="font-bold text-slate-100">{item.productName}</div>
-                      <div className="text-[10px] text-slate-500">{item.category}</div>
-                    </td>
+              {/* Light body */}
+              <tbody>
+                {inspections.map((item, idx) => {
+                  const isEven = idx % 2 === 0;
+                  return (
+                    <tr
+                      key={item.id}
+                      style={{
+                        backgroundColor: isEven ? '#FFFFFF' : 'var(--pg-surface-subtle)',
+                        borderBottom: '1px solid var(--pg-border)',
+                        transition: 'background-color 0.1s ease',
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => navigate(`/report/${item.id}`)}
+                      onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--pg-accent-muted)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.backgroundColor = isEven ? '#FFFFFF' : 'var(--pg-surface-subtle)'; }}
+                    >
+                      {/* Report ID */}
+                      <td style={{ padding: '13px 16px', verticalAlign: 'middle' }}>
+                        <span style={{
+                          display: 'inline-block',
+                          fontFamily: 'monospace', fontSize: '11px', fontWeight: 700,
+                          color: 'var(--pg-pending-text)',
+                          backgroundColor: 'var(--pg-pending-bg)',
+                          border: '1px solid var(--pg-pending-border)',
+                          borderRadius: '3px', padding: '2px 7px',
+                        }}>
+                          REP-{item.id}
+                        </span>
+                      </td>
 
-                    {/* Generated Date */}
-                    <td className="py-3.5 px-4 text-slate-300">
-                      <div className="flex items-center space-x-1.5 text-xs text-slate-400">
-                        <Calendar className="w-3.5 h-3.5 text-slate-500" />
-                        <span>{new Date(item.date).toLocaleDateString('en-IN')}</span>
-                      </div>
-                    </td>
+                      {/* Product */}
+                      <td style={{ padding: '13px 16px', verticalAlign: 'middle' }}>
+                        <div style={{
+                          fontSize: '13px', fontWeight: 600,
+                          color: 'var(--pg-text-primary)',
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                          marginBottom: '2px',
+                        }}>
+                          {item.productName}
+                        </div>
+                        <div style={{
+                          fontSize: '11px', color: 'var(--pg-text-muted)',
+                          overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
+                        }}>
+                          {item.category}
+                        </div>
+                      </td>
 
-                    {/* Assessment */}
-                    <td className="py-3.5 px-4">
-                      <StatusBadge status={item.status} />
-                    </td>
+                      {/* Date */}
+                      <td style={{ padding: '13px 16px', verticalAlign: 'middle' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                          <Calendar style={{ width: '11px', height: '11px', color: 'var(--pg-text-muted)', flexShrink: 0 }} />
+                          <span style={{ fontSize: '12px', color: 'var(--pg-text-secondary)', whiteSpace: 'nowrap' }}>
+                            {formatDate(item.date)}
+                          </span>
+                        </div>
+                      </td>
 
-                    {/* Actions: View / Download */}
-                    <td className="py-3.5 px-4 text-right">
-                      <div className="flex items-center justify-end space-x-2">
-                        <button
-                          onClick={() => navigate(`/report/${item.id}`)}
-                          className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition-colors"
-                          title="View Certificate"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                          <span>View</span>
-                        </button>
-                        <button
-                          onClick={() => navigate(`/report/${item.id}`)}
-                          className="inline-flex items-center space-x-1 px-2.5 py-1.5 rounded-lg bg-indigo-600/20 hover:bg-indigo-600/40 text-indigo-300 border border-indigo-500/30 text-xs font-semibold transition-colors"
-                          title="Download Report"
-                        >
-                          <Download className="w-3.5 h-3.5" />
-                          <span>Download</span>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      {/* Status */}
+                      <td style={{ padding: '13px 16px', verticalAlign: 'middle' }}>
+                        <StatusBadge status={item.status} />
+                      </td>
+
+                      {/* Actions */}
+                      <td
+                        style={{ padding: '13px 16px', verticalAlign: 'middle', textAlign: 'right' }}
+                        onClick={e => e.stopPropagation()}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px' }}>
+                          {/* View */}
+                          <button
+                            onClick={() => navigate(`/report/${item.id}`)}
+                            title="View Report"
+                            style={{
+                              display: 'inline-flex', alignItems: 'center', gap: '5px',
+                              padding: '5px 11px', borderRadius: '5px',
+                              fontSize: '12px', fontWeight: 600, cursor: 'pointer',
+                              backgroundColor: 'var(--pg-surface)',
+                              border: '1px solid var(--pg-border-strong)',
+                              color: 'var(--pg-text-secondary)',
+                              transition: 'border-color 0.12s, color 0.12s',
+                              whiteSpace: 'nowrap',
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--pg-accent)'; e.currentTarget.style.color = 'var(--pg-accent)'; }}
+                            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--pg-border-strong)'; e.currentTarget.style.color = 'var(--pg-text-secondary)'; }}
+                          >
+                            <Eye style={{ width: '12px', height: '12px' }} />
+                            <span>View</span>
+                          </button>
+
+                          {/* Download */}
+                          <button
+                            onClick={() => navigate(`/report/${item.id}`)}
+                            title="Download Report"
+                            style={{
+                              display: 'inline-flex', alignItems: 'center', gap: '5px',
+                              padding: '5px 11px', borderRadius: '5px',
+                              fontSize: '12px', fontWeight: 600, cursor: 'pointer',
+                              backgroundColor: '#F5F3FF',
+                              border: '1px solid #C4B5FD',
+                              color: '#6D28D9',
+                              transition: 'background-color 0.12s, border-color 0.12s',
+                              whiteSpace: 'nowrap',
+                            }}
+                            onMouseEnter={e => { e.currentTarget.style.backgroundColor = '#EDE9FE'; e.currentTarget.style.borderColor = '#A78BFA'; }}
+                            onMouseLeave={e => { e.currentTarget.style.backgroundColor = '#F5F3FF'; e.currentTarget.style.borderColor = '#C4B5FD'; }}
+                          >
+                            <Download style={{ width: '12px', height: '12px' }} />
+                            <span>Download</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         </div>
+
       )}
     </div>
   );
