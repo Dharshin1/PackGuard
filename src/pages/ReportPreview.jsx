@@ -6,7 +6,8 @@ import { useInspections } from '../context/InspectionContext';
 import {
   Printer,
   ArrowLeft,
-  Scale
+  Scale,
+  Download
 } from 'lucide-react';
 
 const ReportPreview = () => {
@@ -25,6 +26,7 @@ const ReportPreview = () => {
           reportId: `REP-${fromContext.id}`,
           generatedAt: new Date().toISOString(),
           inspection: fromContext,
+          pdfDownloadUrl: `http://localhost:8000/api/v1/inspections/${fromContext.id}/pdf`,
           disclaimer:
             'This AI-assisted assessment is intended to support inspector review and does not constitute a final legal determination.',
         });
@@ -66,9 +68,14 @@ const ReportPreview = () => {
     window.print();
   };
 
+  const handleDownloadPythonPdf = () => {
+    const pdfUrl = reportData.pdfDownloadUrl || `http://localhost:8000/api/v1/inspections/${id}/pdf`;
+    window.open(pdfUrl, '_blank');
+  };
+
   return (
     <div className="space-y-6 max-w-4xl mx-auto pb-12">
-      {/* Print Controls (Hidden on print) */}
+      {/* Print & Download Controls (Hidden on print) */}
       <div className="no-print flex items-center justify-between border-b border-slate-800 pb-4">
         <button
           onClick={() => navigate(-1)}
@@ -78,13 +85,23 @@ const ReportPreview = () => {
           <span>Back</span>
         </button>
 
-        <button
-          onClick={handlePrint}
-          className="inline-flex items-center space-x-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md transition-colors"
-        >
-          <Printer className="w-4 h-4" />
-          <span>Print Report / Save PDF</span>
-        </button>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={handleDownloadPythonPdf}
+            className="inline-flex items-center space-x-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            <span>Download Official PDF (Python)</span>
+          </button>
+
+          <button
+            onClick={handlePrint}
+            className="inline-flex items-center space-x-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md transition-colors"
+          >
+            <Printer className="w-4 h-4" />
+            <span>Print Report</span>
+          </button>
+        </div>
       </div>
 
       {/* Printable Report Certificate Card */}
