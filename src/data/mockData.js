@@ -201,5 +201,5 @@ export const DEMO_PRODUCTS = [
   }
 ];
 
-// Initial dataset is EMPTY by default to meet real backend architecture requirements
-export const INITIAL_INSPECTIONS = [];
+// Pre-populate with DEMO_PRODUCTS so enforcement hub renders active metrics immediately
+export const INITIAL_INSPECTIONS = DEMO_PRODUCTS;

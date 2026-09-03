@@ -1,0 +1,149 @@
+@import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap");
+
+@import "tailwindcss";
+
+@config "../tailwind.config.ts";
+
+@layer base {
+  :root {
+    --background: 183 42% 7%;
+    --foreground: 180 21% 93%;
+    --card: 185 38% 10%;
+    --card-foreground: 180 21% 93%;
+    --popover: 185 38% 10%;
+    --popover-foreground: 180 21% 93%;
+    --primary: 39 96% 60%;
+    --primary-foreground: 183 42% 7%;
+    --secondary: 184 29% 16%;
+    --secondary-foreground: 180 21% 93%;
+    --muted: 184 30% 18%;
+    --muted-foreground: 180 30% 88%;
+    --accent: 39 96% 60%;
+    --accent-foreground: 183 42% 7%;
+    --destructive: 4 80% 61%;
+    --destructive-foreground: 180 21% 93%;
+    --border: 183 28% 20%;
+    --input: 183 28% 20%;
+    --ring: 39 96% 60%;
+    --radius: 0.25rem;
+    --sidebar-background: 185 42% 9%;
+    --sidebar-foreground: 180 21% 93%;
+    --sidebar-primary: 39 96% 60%;
+    --sidebar-primary-foreground: 183 42% 7%;
+    --sidebar-accent: 184 29% 16%;
+    --sidebar-accent-foreground: 180 21% 93%;
+    --sidebar-border: 183 28% 20%;
+    --sidebar-ring: 39 96% 60%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    background: #071b1d;
+    font-size: 110%;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-family: "IBM Plex Sans", sans-serif;
+    font-synthesis: none;
+    overflow-x: hidden;
+  }
+
+  button, a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  :focus-visible {
+    outline: 2px solid #f8bb59;
+    outline-offset: 3px;
+  }
+
+  button:active,
+  a:active {
+    transform: scale(0.98);
+  }
+
+  ::selection {
+    background: rgba(248, 187, 89, 0.28);
+    color: #fff8e8;
+  }
+}
+
+@layer utilities {
+  .font-mono-display {
+    font-family: "IBM Plex Mono", monospace;
+  }
+
+  .font-display {
+    font-family: "Barlow Condensed", sans-serif;
+    font-stretch: condensed;
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .grid-glow {
+    background-image: none;
+  }
+
+  .scan-frame {
+    border: 1px solid rgba(248, 187, 89, 0.35);
+    box-shadow: inset 0 0 0 1px rgba(248, 187, 89, 0.05);
+  }
+
+  .cut-lines {
+    position: relative;
+  }
+
+  .cut-lines::before,
+  .cut-lines::after {
+    content: "";
+    position: absolute;
+    width: 12px;
+    border-top: 1px dashed rgba(248, 187, 89, 0.55);
+  }
+
+  .cut-lines::before {
+    left: -7px;
+    top: 12px;
+  }
+
+  .cut-lines::after {
+    right: -7px;
+    bottom: 12px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes scan-line {
+  0% { transform: translateY(-120px); opacity: 0; }
+  15%, 75% { opacity: 1; }
+  100% { transform: translateY(420px); opacity: 0; }
+}
+
+.animate-float {
+  animation: float 5s ease-in-out infinite;
+}
+
+.animate-scan-line {
+  animation: scan-line 3.5s ease-in-out infinite;
+}

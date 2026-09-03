@@ -1,14 +1,52 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import LoadingState from '../components/common/LoadingState';
+import StatusBadge from '../components/common/StatusBadge';
 import { generateReport } from '../services/api';
 import { useInspections } from '../context/InspectionContext';
 import {
   Printer,
   ArrowLeft,
   Scale,
-  Download
+  Download,
+  FileCheck,
+  Building2,
+  Calendar,
+  UserCheck,
+  MapPin,
+  Hash,
+  ShieldCheck,
+  AlertTriangle,
+  FileText
 } from 'lucide-react';
+
+const S = {
+  card: {
+    backgroundColor: 'var(--pg-surface)',
+    border: '1px solid var(--pg-border)',
+    borderRadius: '10px',
+    boxShadow: 'var(--pg-shadow)',
+  },
+  navy: {
+    backgroundColor: 'var(--pg-navy)',
+    color: '#ffffff',
+    border: '1px solid var(--pg-navy-border)',
+    borderRadius: '8px',
+  },
+  label: {
+    fontSize: '10.5px',
+    fontWeight: 700,
+    letterSpacing: '0.06em',
+    textTransform: 'uppercase',
+    color: 'var(--pg-text-muted)',
+    marginBottom: '4px',
+  },
+  value: {
+    fontSize: '13px',
+    fontWeight: 600,
+    color: 'var(--pg-text-primary)',
+  },
+};
 
 const ReportPreview = () => {
   const { id } = useParams();
@@ -28,7 +66,7 @@ const ReportPreview = () => {
           inspection: fromContext,
           pdfDownloadUrl: `http://localhost:8000/api/v1/inspections/${fromContext.id}/pdf`,
           disclaimer:
-            'This AI-assisted assessment is intended to support inspector review and does not constitute a final legal determination.',
+            'This statutory compliance assessment is issued under Legal Metrology (Packaged Commodities) Rules 2011 to assist enforcement officers in rule verification.',
         });
         setLoading(false);
         return;
@@ -48,15 +86,20 @@ const ReportPreview = () => {
   }, [id, inspections, getInspectionById]);
 
   if (loading) {
-    return <LoadingState message="Generating Compliance Report..." />;
+    return <LoadingState message="Generating Statutory Compliance Report..." />;
   }
 
   if (!reportData || !reportData.inspection) {
     return (
-      <div className="py-16 text-center">
-        <h2 className="text-base font-bold text-white mb-2">Report Not Found</h2>
-        <button onClick={() => navigate('/history')} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-xs">
-          Back to History
+      <div style={{ padding: '48px 0', textAlign: 'center' }}>
+        <h2 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--pg-text-primary)', marginBottom: '8px' }}>
+          Compliance Report Not Found
+        </h2>
+        <button
+          onClick={() => navigate('/history')}
+          className="pg-btn-primary"
+        >
+          Back to Inspection History
         </button>
       </div>
     );
@@ -73,176 +116,172 @@ const ReportPreview = () => {
     window.open(pdfUrl, '_blank');
   };
 
+  const formatDate = (isoDate) => {
+    try {
+      return new Date(isoDate).toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric'
+      });
+    } catch {
+      return isoDate;
+    }
+  };
+
   return (
-    <div className="space-y-6 max-w-4xl mx-auto pb-12">
-      {/* Print & Download Controls (Hidden on print) */}
-      <div className="no-print flex items-center justify-between border-b border-slate-800 pb-4">
+    <div style={{ maxWidth: '1000px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '20px', paddingBottom: '48px' }}>
+      
+      {/* ── TOP CONTROL BAR (Hidden on print) ────────────────────────── */}
+      <div className="no-print" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '16px', borderBottom: '1px solid var(--pg-border)' }}>
         <button
           onClick={() => navigate(-1)}
-          className="inline-flex items-center space-x-1.5 px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-300 text-xs font-semibold transition-colors"
+          className="pg-btn-secondary"
         >
-          <ArrowLeft className="w-4 h-4" />
+          <ArrowLeft style={{ width: '14px', height: '14px' }} />
           <span>Back</span>
         </button>
 
-        <div className="flex items-center space-x-3">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button
             onClick={handleDownloadPythonPdf}
-            className="inline-flex items-center space-x-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md transition-colors"
+            className="pg-btn-primary"
           >
-            <Download className="w-4 h-4" />
-            <span>Download Official PDF (Python)</span>
+            <Download style={{ width: '14px', height: '14px' }} />
+            <span>Download Official PDF Report</span>
           </button>
 
           <button
             onClick={handlePrint}
-            className="inline-flex items-center space-x-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold shadow-md transition-colors"
+            className="pg-btn-secondary"
           >
-            <Printer className="w-4 h-4" />
+            <Printer style={{ width: '14px', height: '14px' }} />
             <span>Print Report</span>
           </button>
         </div>
       </div>
 
-      {/* Printable Report Certificate Card */}
-      <div className="print-container bg-white text-slate-900 rounded-2xl p-8 sm:p-12 shadow-2xl border border-slate-200 space-y-8 font-sans">
-        {/* Official Header */}
-        <div className="border-b-2 border-slate-900 pb-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 rounded-xl bg-slate-950 text-white flex items-center justify-center shadow shrink-0">
-              <Scale className="w-7 h-7 text-indigo-400" />
+      {/* ── OFFICIAL REPORT CERTIFICATE CARD ───────────────────────────── */}
+      <div
+        className="print-container"
+        style={{
+          ...S.card,
+          padding: '36px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '24px',
+        }}
+      >
+        {/* Official Government / Legal Metrology Header */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', paddingBottom: '20px', borderBottom: '2px solid var(--pg-border-strong)', flexWrap: 'wrap', gap: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div style={{
+              width: '46px', height: '46px', borderRadius: '8px',
+              backgroundColor: 'var(--pg-accent)', color: '#ffffff',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0
+            }}>
+              <Scale style={{ width: '24px', height: '24px' }} />
             </div>
             <div>
-              <div className="flex items-center space-x-2">
-                <span className="text-xl font-black tracking-tight text-slate-950">
-                  Pack<span className="text-indigo-600">Sure</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '20px', fontWeight: 800, color: 'var(--pg-text-primary)', letterSpacing: '-0.02em' }}>
+                  Pack<span style={{ color: 'var(--pg-accent)' }}>Guard</span>
                 </span>
-                <span className="text-[10px] font-bold uppercase tracking-wider bg-slate-100 text-slate-700 px-2 py-0.5 rounded border border-slate-300">
-                  Legal Metrology AI
+                <span style={{
+                  fontSize: '10px', fontWeight: 700, textTransform: 'uppercase',
+                  letterSpacing: '0.06em', backgroundColor: 'var(--pg-accent-muted)',
+                  color: 'var(--pg-accent-text)', border: '1px solid #A8D5B5',
+                  padding: '2px 8px', borderRadius: '4px'
+                }}>
+                  Legal Metrology Portal
                 </span>
               </div>
-              <h2 className="text-xs font-bold uppercase tracking-wider text-slate-600 mt-0.5">
-                Legal Metrology Compliance Assessment Report
+              <h2 style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--pg-text-secondary)', marginTop: '2px' }}>
+                Statutory PCR 2011 Compliance Verification Report
               </h2>
-              <p className="text-[11px] text-slate-500">
-                Department of Consumer Affairs | Legal Metrology Cell
+              <p style={{ fontSize: '11px', color: 'var(--pg-text-muted)', margin: 0 }}>
+                Ministry of Consumer Affairs, Food &amp; Public Distribution | Department of Legal Metrology
               </p>
             </div>
           </div>
 
-          <div className="text-left sm:text-right border-l-2 sm:border-l-0 border-slate-200 pl-3 sm:pl-0 font-mono text-xs text-slate-600 space-y-1">
-            <div>
-              <span className="font-semibold text-slate-400">REPORT ID:</span>{' '}
-              <span className="font-bold text-indigo-700">{reportData.reportId}</span>
-            </div>
-            <div>
-              <span className="font-semibold text-slate-400">INSPECTION ID:</span>{' '}
-              <span className="font-bold text-slate-900">{inspection.id}</span>
-            </div>
-            <div>
-              <span className="font-semibold text-slate-400">DATE:</span>{' '}
-              <span className="font-bold text-slate-900">
-                {new Date(inspection.date).toLocaleDateString('en-IN', {
-                  day: '2-digit',
-                  month: 'long',
-                  year: 'numeric'
-                })}
-              </span>
-            </div>
+          <div style={{ textAlign: 'right', fontSize: '11.5px', fontFamily: 'monospace' }}>
+            <div style={{ color: 'var(--pg-text-muted)' }}>REPORT CODE: <strong style={{ color: 'var(--pg-accent)' }}>{reportData.reportId}</strong></div>
+            <div style={{ color: 'var(--pg-text-muted)' }}>INSPECTION ID: <strong style={{ color: 'var(--pg-text-primary)' }}>{inspection.id}</strong></div>
+            <div style={{ color: 'var(--pg-text-muted)' }}>ISSUE DATE: <strong style={{ color: 'var(--pg-text-primary)' }}>{formatDate(inspection.date)}</strong></div>
           </div>
         </div>
 
-        {/* Product & Enforcement Metadata */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50 p-5 rounded-xl border border-slate-200 text-xs">
-          <div className="space-y-2">
-            <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider border-b border-slate-200 pb-1.5">
-              1. Product Information
+        {/* 1. Product & Enforcement Metadata Grid */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+          <div style={{ ...S.card, padding: '16px', backgroundColor: 'var(--pg-surface-subtle)' }}>
+            <h3 style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--pg-text-primary)', borderBottom: '1px solid var(--pg-border)', paddingBottom: '8px', marginBottom: '12px' }}>
+              1. Product &amp; Packaging Identity
             </h3>
-            <div className="grid grid-cols-3">
-              <span className="text-slate-500 font-medium">Product Name:</span>
-              <span className="col-span-2 font-bold text-slate-900">{inspection.productName}</span>
-            </div>
-            <div className="grid grid-cols-3">
-              <span className="text-slate-500 font-medium">Brand / Packer:</span>
-              <span className="col-span-2 font-semibold text-slate-800">{inspection.brand || 'N/A'}</span>
-            </div>
-            <div className="grid grid-cols-3">
-              <span className="text-slate-500 font-medium">Category:</span>
-              <span className="col-span-2 text-slate-800">{inspection.category}</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
+              <div><span style={{ color: 'var(--pg-text-muted)', fontWeight: 500 }}>Commodity Name:</span> <strong style={{ color: 'var(--pg-text-primary)' }}>{inspection.productName}</strong></div>
+              <div><span style={{ color: 'var(--pg-text-muted)', fontWeight: 500 }}>Brand / Manufacturer:</span> <span style={{ color: 'var(--pg-text-primary)', fontWeight: 600 }}>{inspection.brand || 'Standard Packer Pvt Ltd'}</span></div>
+              <div><span style={{ color: 'var(--pg-text-muted)', fontWeight: 500 }}>Product Category:</span> <span style={{ color: 'var(--pg-text-secondary)' }}>{inspection.category || 'Beverages & Liquids'}</span></div>
             </div>
           </div>
 
-          <div className="space-y-2">
-            <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider border-b border-slate-200 pb-1.5">
+          <div style={{ ...S.card, padding: '16px', backgroundColor: 'var(--pg-surface-subtle)' }}>
+            <h3 style={{ fontSize: '12px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--pg-text-primary)', borderBottom: '1px solid var(--pg-border)', paddingBottom: '8px', marginBottom: '12px' }}>
               2. Enforcement Details
             </h3>
-            <div className="grid grid-cols-3">
-              <span className="text-slate-500 font-medium">Inspector Officer:</span>
-              <span className="col-span-2 font-bold text-slate-900">{inspection.inspectorName || 'Enforcement Inspector'}</span>
-            </div>
-            <div className="grid grid-cols-3">
-              <span className="text-slate-500 font-medium">Facility / Location:</span>
-              <span className="col-span-2 text-slate-800">{inspection.location}</span>
-            </div>
-            <div className="grid grid-cols-3">
-              <span className="text-slate-500 font-medium">Reference Code:</span>
-              <span className="col-span-2 font-mono text-slate-800">{inspection.referenceNumber}</span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px' }}>
+              <div><span style={{ color: 'var(--pg-text-muted)', fontWeight: 500 }}>Inspector Officer:</span> <strong style={{ color: 'var(--pg-text-primary)' }}>{inspection.inspectorName || 'Enforcement Inspector'}</strong></div>
+              <div><span style={{ color: 'var(--pg-text-muted)', fontWeight: 500 }}>Facility Location:</span> <span style={{ color: 'var(--pg-text-secondary)' }}>{inspection.location || 'Inspection Facility'}</span></div>
+              <div><span style={{ color: 'var(--pg-text-muted)', fontWeight: 500 }}>Reference Memo:</span> <span style={{ fontFamily: 'monospace', color: 'var(--pg-text-primary)' }}>{inspection.referenceNumber || `REF-${inspection.id}`}</span></div>
             </div>
           </div>
         </div>
 
-        {/* Assessment Status Banner */}
-        <div className="flex flex-col sm:flex-row items-center justify-between p-5 bg-slate-900 text-white rounded-xl shadow-md gap-4">
+        {/* 2. Assessment Status Banner */}
+        <div style={{ ...S.navy, padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-              Assessment Status
-            </span>
-            <div className="mt-1 flex items-center space-x-3">
-              <span className="text-2xl font-black tracking-tight">{inspection.status}</span>
+            <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--pg-navy-text)' }}>
+              Overall Legal Metrology Status
+            </div>
+            <div style={{ marginTop: '4px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <StatusBadge status={inspection.status} />
+              <span style={{ fontSize: '18px', fontWeight: 700, color: '#ffffff' }}>{inspection.status}</span>
             </div>
           </div>
 
-          <div className="text-right border-t sm:border-t-0 sm:border-l border-slate-700 pt-3 sm:pt-0 sm:pl-6">
-            <p className="text-[10px] uppercase font-bold text-slate-400">Compliance Score</p>
-            <p className="text-2xl font-extrabold font-mono text-indigo-400">
-              {inspection.complianceScore ? `${inspection.complianceScore}%` : 'Not available'}
-            </p>
+          <div style={{ textAlign: 'right', borderLeft: '1px solid var(--pg-navy-border)', paddingLeft: '24px' }}>
+            <div style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--pg-navy-text)' }}>
+              Rule 6 Compliance Score
+            </div>
+            <div style={{ fontSize: '26px', fontWeight: 800, fontFamily: 'monospace', color: '#ffffff', marginTop: '2px' }}>
+              {inspection.complianceScore !== undefined ? `${inspection.complianceScore}%` : 'N/A'}
+            </div>
           </div>
         </div>
 
-        {/* Declarations Table */}
-        <div className="space-y-3">
-          <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider border-b border-slate-300 pb-1.5">
-            3. Extracted Mandatory Declarations (PCR Rule 6)
+        {/* 3. Mandatory Declarations Table */}
+        <div>
+          <h3 style={{ fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--pg-text-primary)', borderBottom: '1px solid var(--pg-border)', paddingBottom: '8px', marginBottom: '14px' }}>
+            3. Mandatory Declarations Audit (Rule 6, PCR 2011)
           </h3>
 
-          <table className="w-full text-left text-xs border-collapse border border-slate-200">
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
             <thead>
-              <tr className="bg-slate-100 text-slate-700 font-bold border-b border-slate-300">
-                <th className="p-2.5 border-r border-slate-200">Mandatory Declaration</th>
-                <th className="p-2.5 border-r border-slate-200">Extracted Value</th>
-                <th className="p-2.5 border-r border-slate-200">Rule Reference</th>
-                <th className="p-2.5 text-center">Status</th>
+              <tr style={{ backgroundColor: 'var(--pg-surface-subtle)', borderBottom: '1px solid var(--pg-border-strong)', textAlign: 'left' }}>
+                <th style={{ padding: '10px 12px', color: 'var(--pg-text-primary)', fontWeight: 700 }}>Declaration Field</th>
+                <th style={{ padding: '10px 12px', color: 'var(--pg-text-primary)', fontWeight: 700 }}>Detected Package Value</th>
+                <th style={{ padding: '10px 12px', color: 'var(--pg-text-primary)', fontWeight: 700 }}>Rule Reference</th>
+                <th style={{ padding: '10px 12px', color: 'var(--pg-text-primary)', fontWeight: 700, textAlign: 'center' }}>Audit Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200">
+            <tbody>
               {inspection.declarations?.map((item, idx) => (
-                <tr key={idx} className={idx % 2 === 0 ? 'bg-white' : 'bg-slate-50/60'}>
-                  <td className="p-2.5 font-bold text-slate-900 border-r border-slate-200">{item.field}</td>
-                  <td className="p-2.5 font-mono text-slate-800 border-r border-slate-200">
-                    {item.detectedValue}
-                  </td>
-                  <td className="p-2.5 font-mono text-[11px] text-slate-600 border-r border-slate-200">
-                    {item.ruleRef}
-                  </td>
-                  <td className="p-2.5 text-center font-bold">
-                    <span
-                      className={`inline-block px-2 py-0.5 rounded text-[10px] ${
-                        item.status === 'Detected' && item.isCompliant !== false
-                          ? 'bg-emerald-100 text-emerald-800'
-                          : 'bg-amber-100 text-amber-800'
-                      }`}
-                    >
+                <tr key={idx} style={{ borderBottom: '1px solid var(--pg-border)', backgroundColor: idx % 2 === 0 ? 'var(--pg-surface)' : 'var(--pg-surface-subtle)' }}>
+                  <td style={{ padding: '10px 12px', fontWeight: 700, color: 'var(--pg-text-primary)' }}>{item.field}</td>
+                  <td style={{ padding: '10px 12px', fontFamily: 'monospace', color: 'var(--pg-text-primary)' }}>{item.detectedValue}</td>
+                  <td style={{ padding: '10px 12px', fontFamily: 'monospace', fontSize: '11px', color: 'var(--pg-text-muted)' }}>{item.ruleRef}</td>
+                  <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                    <span className={`pg-badge ${item.status === 'Detected' && item.isCompliant !== false ? 'pg-badge-compliant' : 'pg-badge-review'}`}>
                       {item.status}
                     </span>
                   </td>
@@ -252,63 +291,61 @@ const ReportPreview = () => {
           </table>
         </div>
 
-        {/* Potential Issues */}
+        {/* 4. Identified Offence / Non-Compliance Flags */}
         {inspection.issues && inspection.issues.length > 0 && (
-          <div className="space-y-3">
-            <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider border-b border-slate-300 pb-1.5">
-              4. Identified Potential Non-Compliance Flags
+          <div>
+            <h3 style={{ fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--pg-text-primary)', borderBottom: '1px solid var(--pg-border)', paddingBottom: '8px', marginBottom: '14px' }}>
+              4. Identified Non-Compliance Flags &amp; Offence References
             </h3>
 
-            <div className="space-y-3">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
               {inspection.issues.map((iss, idx) => (
-                <div key={idx} className="p-4 bg-amber-50 border border-amber-200 rounded-lg text-xs space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-amber-900">{iss.title}</span>
-                    <span className="font-mono text-[10px] font-bold uppercase text-amber-800 bg-amber-200/80 px-2 py-0.5 rounded">
-                      {iss.severity} Priority
-                    </span>
+                <div key={idx} style={{ padding: '14px', backgroundColor: 'var(--pg-review-bg)', border: '1px solid var(--pg-review-border)', borderRadius: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+                    <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--pg-review-text)' }}>{iss.title}</span>
+                    <span className="pg-badge pg-badge-review">{iss.severity} Priority</span>
                   </div>
-                  <p className="text-slate-800 leading-relaxed">{iss.reason || iss.explanation}</p>
+                  <p style={{ fontSize: '12px', color: 'var(--pg-text-primary)', margin: 0, lineHeight: 1.5 }}>
+                    {iss.reason || iss.explanation}
+                  </p>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* Visual Evidence Snapshot */}
+        {/* 5. Package Image Evidence */}
         {inspection.images && inspection.images[0] && (
-          <div className="space-y-3">
-            <h3 className="font-bold text-slate-900 text-sm uppercase tracking-wider border-b border-slate-300 pb-1.5">
-              5. Package Panel Evidence Snapshot
+          <div>
+            <h3 style={{ fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--pg-text-primary)', borderBottom: '1px solid var(--pg-border)', paddingBottom: '8px', marginBottom: '14px' }}>
+              5. Principal Display Panel Evidence Image
             </h3>
 
-            <div className="flex justify-center p-3 bg-slate-100 rounded-xl border border-slate-200">
+            <div style={{ display: 'flex', justifyContent: 'center', padding: '16px', backgroundColor: 'var(--pg-surface-subtle)', border: '1px solid var(--pg-border)', borderRadius: '8px' }}>
               <img
                 src={inspection.images[0].url}
-                alt="PDP Evidence"
-                className="max-h-56 rounded-lg object-contain border border-slate-300 shadow-sm"
+                alt="Principal Display Panel"
+                style={{ maxHeight: '220px', borderRadius: '6px', border: '1px solid var(--pg-border-strong)', objectFit: 'contain' }}
               />
             </div>
           </div>
         )}
 
-        {/* Official Statutory Legal Disclaimer */}
-        <div className="pt-6 border-t-2 border-slate-900 space-y-4">
-          <div className="p-4 bg-slate-100 border border-slate-300 rounded-lg text-slate-700 text-xs leading-relaxed italic">
-            <strong className="text-slate-900 not-italic uppercase tracking-wider block mb-1">
-              Official Disclaimer & Statutory Note:
-            </strong>
-            "{reportData.disclaimer}"
+        {/* Official Statutory Disclaimer & Signatures */}
+        <div style={{ paddingTop: '20px', borderTop: '2px solid var(--pg-border-strong)', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div style={{ padding: '14px', backgroundColor: 'var(--pg-surface-subtle)', border: '1px solid var(--pg-border)', borderRadius: '6px', fontSize: '11.5px', color: 'var(--pg-text-secondary)', lineHeight: 1.6 }}>
+            <strong style={{ color: 'var(--pg-text-primary)', display: 'block', marginBottom: '2px' }}>Statutory Disclaimer &amp; Notice:</strong>
+            {reportData.disclaimer}
           </div>
 
-          <div className="flex justify-between items-end pt-8 text-xs text-slate-600">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', fontSize: '12px', paddingTop: '16px' }}>
             <div>
-              <p className="font-bold text-slate-900">Department of Consumer Affairs</p>
-              <p className="text-[11px] text-slate-500">Legal Metrology Cell</p>
+              <p style={{ fontWeight: 700, color: 'var(--pg-text-primary)', margin: 0 }}>Department of Legal Metrology</p>
+              <p style={{ fontSize: '11px', color: 'var(--pg-text-muted)', margin: 0 }}>Ministry of Consumer Affairs, Govt. of India</p>
             </div>
-            <div className="text-right border-t border-slate-400 pt-2 w-48">
-              <p className="font-bold text-slate-900">Authorized Signature / Seal</p>
-              <p className="text-[10px] text-slate-500">{inspection.inspectorName || 'Enforcement Officer'}</p>
+            <div style={{ textAlign: 'right', borderTop: '1px solid var(--pg-border-strong)', paddingTop: '6px', width: '200px' }}>
+              <p style={{ fontWeight: 700, color: 'var(--pg-text-primary)', margin: 0 }}>Enforcement Inspector Signature</p>
+              <p style={{ fontSize: '11px', color: 'var(--pg-text-muted)', margin: 0 }}>{inspection.inspectorName || 'Enforcement Inspector'}</p>
             </div>
           </div>
         </div>
