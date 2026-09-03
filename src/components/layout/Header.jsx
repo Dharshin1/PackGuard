@@ -76,10 +76,10 @@ const NotificationPanel = ({ notifications, onMarkRead, onMarkAllRead, onClose }
       top: 'calc(100% + 8px)',
       right: 0,
       width: '340px',
-      backgroundColor: '#FFFFFF',
+      backgroundColor: 'var(--pg-surface)',
       border: '1px solid var(--pg-border)',
       borderRadius: '8px',
-      boxShadow: '0 8px 24px rgba(28,28,26,0.12)',
+      boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
       zIndex: 200,
       overflow: 'hidden',
     }}>
@@ -151,12 +151,12 @@ const NotificationPanel = ({ notifications, onMarkRead, onMarkAllRead, onClose }
                   display: 'flex', alignItems: 'flex-start', gap: '11px',
                   padding: '12px 16px',
                   borderBottom: idx < notifications.length - 1 ? '1px solid var(--pg-border)' : 'none',
-                  backgroundColor: n.read ? '#FFFFFF' : 'var(--pg-accent-muted)',
+                  backgroundColor: n.read ? 'var(--pg-surface)' : 'var(--pg-surface-subtle)',
                   cursor: 'pointer',
                   transition: 'background-color 0.1s',
                 }}
-                onMouseEnter={e => { e.currentTarget.style.backgroundColor = n.read ? 'var(--pg-surface-subtle)' : '#D8EFE0'; }}
-                onMouseLeave={e => { e.currentTarget.style.backgroundColor = n.read ? '#FFFFFF' : 'var(--pg-accent-muted)'; }}
+                onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--pg-accent-muted)'; }}
+                onMouseLeave={e => { e.currentTarget.style.backgroundColor = n.read ? 'var(--pg-surface)' : 'var(--pg-surface-subtle)'; }}
               >
                 {/* Icon */}
                 <div style={{

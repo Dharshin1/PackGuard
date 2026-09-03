@@ -127,14 +127,14 @@ const ReportsList = () => {
                     <tr
                       key={item.id}
                       style={{
-                        backgroundColor: isEven ? '#FFFFFF' : 'var(--pg-surface-subtle)',
+                        backgroundColor: isEven ? 'var(--pg-surface)' : 'var(--pg-surface-subtle)',
                         borderBottom: '1px solid var(--pg-border)',
                         transition: 'background-color 0.1s ease',
                         cursor: 'pointer',
                       }}
                       onClick={() => navigate(`/report/${item.id}`)}
                       onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--pg-accent-muted)'; }}
-                      onMouseLeave={e => { e.currentTarget.style.backgroundColor = isEven ? '#FFFFFF' : 'var(--pg-surface-subtle)'; }}
+                      onMouseLeave={e => { e.currentTarget.style.backgroundColor = isEven ? 'var(--pg-surface)' : 'var(--pg-surface-subtle)'; }}
                     >
                       {/* Report ID */}
                       <td style={{ padding: '13px 16px', verticalAlign: 'middle' }}>

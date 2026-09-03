@@ -91,7 +91,7 @@ COUNTRY OF ORIGIN: INDIA
 
       {/* Body — dark pre block kept intentionally for readability */}
       {expanded && (
-        <div style={{ padding: '12px', backgroundColor: '#FAFAFA' }}>
+        <div style={{ padding: '12px', backgroundColor: 'var(--pg-surface-subtle)' }}>
           <pre style={{
             fontSize: '10.5px', fontFamily: 'monospace',
             color: '#E2E8F0', lineHeight: 1.7,
