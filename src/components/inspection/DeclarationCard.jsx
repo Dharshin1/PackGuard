@@ -63,7 +63,7 @@ const DeclarationCard = ({ declarations = [], onUpdateDeclarations }) => {
           display: 'inline-flex', alignItems: 'center', gap: '4px',
           fontSize: '11px', fontWeight: 600, padding: '3px 8px',
           borderRadius: '4px', whiteSpace: 'nowrap',
-          backgroundColor: '#F7F5F0', border: '1px solid #D4CFC8', color: '#6B6560',
+          backgroundColor: 'var(--pg-surface-subtle)', border: '1px solid var(--pg-border)', color: 'var(--pg-text-muted)',
         }}>
           <MinusCircle style={{ width: '10px', height: '10px' }} />
           NOT DETECTED
@@ -117,13 +117,13 @@ const DeclarationCard = ({ declarations = [], onUpdateDeclarations }) => {
       return <span style={{ color: 'var(--pg-border-strong)', fontSize: '11px' }}>—</span>;
     }
     const pct = Math.round(item.confidence * 100);
-    const barColor = pct >= 85 ? '#1B6B35' : pct >= 60 ? '#8A5C00' : '#9B2B1A';
+    const barColor = pct >= 85 ? '#34d399' : pct >= 60 ? '#fbbf24' : '#f87171';
     return (
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '3px' }}>
         <span style={{ fontSize: '11.5px', fontWeight: 700, color: barColor, fontVariantNumeric: 'tabular-nums' }}>
           {pct}%
         </span>
-        <div style={{ width: '48px', height: '3px', borderRadius: '2px', backgroundColor: '#E2E0DC' }}>
+        <div style={{ width: '48px', height: '3px', borderRadius: '2px', backgroundColor: 'rgba(255,255,255,0.12)' }}>
           <div style={{ width: `${pct}%`, height: '100%', borderRadius: '2px', backgroundColor: barColor }} />
         </div>
       </div>
@@ -194,12 +194,12 @@ const DeclarationCard = ({ declarations = [], onUpdateDeclarations }) => {
 
               return (
                 <tr key={idx} style={{
-                  backgroundColor: isEven ? '#FFFFFF' : 'var(--pg-surface-subtle)',
+                  backgroundColor: isEven ? 'var(--pg-surface)' : 'var(--pg-surface-subtle)',
                   borderBottom: '1px solid var(--pg-border)',
                   transition: 'background-color 0.1s ease',
                 }}
                   onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--pg-accent-muted)'; }}
-                  onMouseLeave={e => { e.currentTarget.style.backgroundColor = isEven ? '#FFFFFF' : 'var(--pg-surface-subtle)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.backgroundColor = isEven ? 'var(--pg-surface)' : 'var(--pg-surface-subtle)'; }}
                 >
                   {/* Declaration Field */}
                   <td style={{ padding: '12px 14px', verticalAlign: 'middle' }}>

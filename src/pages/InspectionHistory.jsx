@@ -8,7 +8,7 @@ import { Search, Plus, RefreshCw, Filter, ClipboardList } from 'lucide-react';
 /* ─── shared token shorthands ─── */
 const input = {
   width: '100%',
-  backgroundColor: '#FFFFFF',
+  backgroundColor: 'var(--pg-surface-subtle)',
   border: '1px solid var(--pg-border)',
   borderRadius: '6px',
   fontSize: '13px',
@@ -126,7 +126,7 @@ const InspectionHistory = () => {
 
           {/* ── FILTER / SEARCH TOOLBAR ─────────────────────────────── */}
           <div style={{
-            backgroundColor: '#FFFFFF',
+            backgroundColor: 'var(--pg-surface)',
             border: '1px solid var(--pg-border)',
             borderRadius: '8px',
             padding: '12px 14px',
@@ -183,7 +183,7 @@ const InspectionHistory = () => {
                     backgroundRepeat: 'no-repeat',
                     backgroundPosition: 'right 10px center',
                     paddingRight: '28px',
-                    backgroundColor: statusFilter !== 'All' ? 'var(--pg-accent-muted)' : '#FFFFFF',
+                    backgroundColor: statusFilter !== 'All' ? 'var(--pg-accent-muted)' : 'var(--pg-surface-subtle)',
                     borderColor: statusFilter !== 'All' ? '#A8D5B5' : 'var(--pg-border)',
                     color: statusFilter !== 'All' ? 'var(--pg-accent-text)' : 'var(--pg-text-primary)',
                   }}
@@ -211,7 +211,7 @@ const InspectionHistory = () => {
                   backgroundRepeat: 'no-repeat',
                   backgroundPosition: 'right 10px center',
                   paddingRight: '28px',
-                  backgroundColor: dateFilter !== 'All' ? 'var(--pg-pending-bg)' : '#FFFFFF',
+                  backgroundColor: dateFilter !== 'All' ? 'var(--pg-pending-bg)' : 'var(--pg-surface-subtle)',
                   borderColor: dateFilter !== 'All' ? 'var(--pg-pending-border)' : 'var(--pg-border)',
                   color: dateFilter !== 'All' ? 'var(--pg-pending-text)' : 'var(--pg-text-primary)',
                 }}
