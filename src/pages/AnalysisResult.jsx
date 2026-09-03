@@ -33,14 +33,15 @@ const AnalysisResult = () => {
 
   useEffect(() => {
     const loadData = async () => {
-      if (currentAnalysis && currentAnalysis.id === id) {
+      const targetId = id || (currentAnalysis ? currentAnalysis.id : (inspections && inspections.length > 0 ? inspections[0].id : 'PKG-2024-0812'));
+      if (currentAnalysis && currentAnalysis.id === targetId) {
         setInspection(currentAnalysis);
         setLoading(false);
         return;
       }
 
       try {
-        const res = await getInspection(inspections, id);
+        const res = await getInspection(inspections, targetId);
         setInspection(res);
       } catch (err) {
         console.error('Failed to load inspection:', err);

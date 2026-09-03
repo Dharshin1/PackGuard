@@ -58,7 +58,8 @@ const ReportPreview = () => {
 
   useEffect(() => {
     const fetchReport = async () => {
-      const fromContext = getInspectionById(id);
+      const targetId = id || (inspections && inspections.length > 0 ? inspections[0].id : 'PKG-2024-0812');
+      const fromContext = getInspectionById(targetId);
       if (fromContext) {
         setReportData({
           reportId: `REP-${fromContext.id}`,
@@ -73,7 +74,7 @@ const ReportPreview = () => {
       }
 
       try {
-        const res = await generateReport(inspections, id);
+        const res = await generateReport(inspections, targetId);
         setReportData(res);
       } catch (err) {
         console.error('Failed to generate report:', err);

@@ -64,7 +64,8 @@ const InspectionDetails = () => {
 
   useEffect(() => {
     const fetchRecord = async () => {
-      const fromContext = getInspectionById(id);
+      const targetId = id || (inspections && inspections.length > 0 ? inspections[0].id : 'PKG-2024-0812');
+      const fromContext = getInspectionById(targetId);
       if (fromContext) {
         setInspection(fromContext);
         setOverrideStatus(fromContext.status);
@@ -74,10 +75,10 @@ const InspectionDetails = () => {
       }
 
       try {
-        const res = await getInspection(inspections, id);
+        const res = await getInspection(inspections, targetId);
         setInspection(res);
-        setOverrideStatus(res.status);
-        setOverrideNotes(res.summaryNotes || '');
+        setOverrideStatus(res?.status || '');
+        setOverrideNotes(res?.summaryNotes || '');
       } catch (err) {
         console.error('Failed to fetch inspection details:', err);
       } finally {
