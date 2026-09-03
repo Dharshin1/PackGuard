@@ -58,11 +58,11 @@ async def analyze_package_inspection(
     if not uploaded_url:
         uploaded_url = "https://images.unsplash.com/photo-1563636619-e9143da7973b?auto=format&fit=crop&w=800&q=80"
 
-    # Step 1: OpenCV Preprocessing
-    cv_img, cv_meta = preprocess_image_opencv(image_bytes)
+    # Step 1: OpenCV Preprocessing with Super-Resolution & ROI Contour Detection
+    cv_img, roi_crops, cv_meta = preprocess_image_opencv(image_bytes)
 
-    # Step 2: PaddleOCR Extraction
-    ocr_result = run_ocr_pipeline(cv_img, productName or "Packaged Commodity")
+    # Step 2: Multi-Pass PaddleOCR Extraction (Full Image + High-Res ROI Crops)
+    ocr_result = run_ocr_pipeline(cv_img, roi_crops, productName or "Packaged Commodity")
 
     # Step 3: Information Extraction (Declarations Parser)
     declarations = extract_statutory_declarations(
